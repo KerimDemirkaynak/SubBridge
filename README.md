@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://addons.mozilla.org/firefox/addon/subbridge/"><img src="https://img.shields.io/badge/Firefox-Extension-FF7139?logo=firefoxbrowser&logoColor=white" alt="Firefox Extension"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
+  <a href="https://addons.mozilla.org/firefox/addon/subbridge/"><img src="https://img.shields.io/badge/Firefox-Extension-FF7139?logo=firefoxbrowser&logoColor=white" alt="Firefox Extension"></a>  <a href="https://github.com/KerimDemirkaynak/SubBridge/releases/"><img src="https://img.shields.io/github/v/release/KerimDemirkaynak/SubBridge?label=Version&color=blue" alt="Version"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
 </p>
 
 SubBridge translates subtitles displayed on supported video websites into your preferred language. Watch anime, movies, and other videos while following translated subtitles without leaving the page.
