@@ -9,12 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://addons.mozilla.org/firefox/addon/subbridge/">
-    <img src="https://img.shields.io/badge/Firefox-Extension-FF7139?logo=firefoxbrowser&logoColor=white" alt="Firefox Extension">
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License">
-  </a>
+  <a href="https://addons.mozilla.org/firefox/addon/subbridge/"><img src="https://img.shields.io/badge/Firefox-Extension-FF7139?logo=firefoxbrowser&logoColor=white" alt="Firefox Extension"></a> <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License"></a>
 </p>
 
 SubBridge translates subtitles displayed on supported video websites into your preferred language. Watch anime, movies, and other videos while following translated subtitles without leaving the page.
@@ -39,16 +34,16 @@ It works with existing video subtitles, such as those enabled on YouTube or disp
 
 See how translated subtitles appear over a video.
 
-<p align="center">
-  <img src="https://addons.mozilla.org/user-media/previews/thumbs/424/424446.jpg?modified=1791832725" alt="Translated subtitles and their appearance" width="800">
+<p align="left">
+  <img src="https://addons.mozilla.org/user-media/previews/thumbs/424/424446.jpg?modified=1791832725" alt="Translated subtitles and their appearance" width="500">
 </p>
 
 ### User interface
 
 The SubBridge interface and its available controls.
 
-<p align="center">
-  <img src="https://addons.mozilla.org/user-media/previews/full/424/424447.png?modified=1791832716" alt="SubBridge user interface" width="800">
+<p align="left">
+  <img src="https://addons.mozilla.org/user-media/previews/full/424/424447.png?modified=1791832716" alt="SubBridge user interface" width="200">
 </p>
 
 ## Translation Providers
