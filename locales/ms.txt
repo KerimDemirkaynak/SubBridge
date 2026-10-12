@@ -1,0 +1,72 @@
+Terjemah video ini
+Terjemah
+Gaya
+Asal
+Laman
+Pintasan
+Enjin terjemahan
+Kunci API
+Model
+Daripada
+Kepada
+Kesan automatik
+Papar baris asal
+Sembunyikan sari kata sedia ada laman
+Terjemah secara automatik
+Uji enjin
+Lanjutan…
+{n} model ditemui
+Saiz
+Kelegapan
+Jarak dari bawah
+Warna teks
+Warna garis luar
+Ketebalan garis luar
+Bayang
+Tiada
+Biasa
+Kuat
+Fon
+Nisbah bidang
+Auto
+Menegak (Shorts/TikTok)
+Seret untuk meletakkan
+Alih ke atas
+Sama seperti terjemahan
+Jarak antara baris
+Laman semasa:
+Simpan untuk laman ini
+Set semula
+Set semula gaya sari kata
+Set semula semua tetapan gaya sari kata? Enjin dan kunci anda dikekalkan.
+Mula / henti terjemahan
+Papar / sembunyi sari kata
+Papar / sembunyi baris asal
+Tiada tab aktif ditemui.
+Tidak dapat mencapai halaman ini. Muat semula dan cuba lagi.
+Tiada video ditemui pada halaman ini. Mainkan video dan cuba lagi.
+Ralat tidak dijangka.
+Ralat
+Bahasa
+Automatik (bahasa pelayar)
+URL asas
+Senaraikan model
+"Senaraikan model" memaparkan model yang boleh digunakan oleh kunci anda.
+Percuma, tetapi dihadkan kadar. Enjin LLM memberikan kualiti lebih baik.
+Tingkah laku
+Lanjutan
+Baris setiap permintaan
+Permintaan selari
+Baris konteks
+Glosari: satu "asal = terjemahan" setiap baris
+Kosongkan cache terjemahan
+Bahasa
+Henti
+Tetapan
+Mencari sari kata…
+Fail sari kata tidak ditemui – menterjemah secara langsung
+Menterjemah {pct}%
+Terjemahan sedia ({n} baris)
+Ralat terjemahan: {msg}
+Hidupkan sari kata (CC) pemain supaya dapat diterjemahkan.
+Tersuai / setempat (serasi OpenAI)

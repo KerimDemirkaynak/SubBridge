@@ -1,0 +1,72 @@
+Przetłumacz to wideo
+Tłumacz
+Styl
+Oryginał
+Witryna
+Skróty
+Silnik tłumaczenia
+Klucz API
+Model
+Z
+Na
+Wykryj automatycznie
+Pokaż wiersz oryginalny
+Ukryj napisy witryny
+Tłumacz automatycznie
+Testuj silnik
+Zaawansowane…
+Znaleziono modeli: {n}
+Rozmiar
+Przezroczystość
+Odległość od dołu
+Kolor tekstu
+Kolor konturu
+Grubość konturu
+Cień
+Brak
+Normalny
+Mocny
+Czcionka
+Proporcje obrazu
+Auto
+Pionowe (Shorts/TikTok)
+Przeciągnij, aby ustawić
+Przenieś na górę
+Jak tłumaczenie
+Odstęp między wierszami
+Bieżąca witryna:
+Zapisz dla tej witryny
+Resetuj
+Resetuj styl napisów
+Zresetować wszystkie ustawienia stylu napisów? Silnik i klucze zostaną zachowane.
+Rozpocznij / zatrzymaj tłumaczenie
+Pokaż / ukryj napisy
+Pokaż / ukryj wiersz oryginalny
+Nie znaleziono aktywnej karty.
+Nie można połączyć się ze stroną. Odśwież ją i spróbuj ponownie.
+Na tej stronie nie znaleziono wideo. Uruchom wideo i spróbuj ponownie.
+Nieoczekiwany błąd.
+Błąd
+Język
+Automatycznie (język przeglądarki)
+Bazowy URL
+Pokaż modele
+„Pokaż modele” wyświetla modele dostępne dla Twojego klucza.
+Bezpłatne, ale z limitem zapytań. Silniki LLM dają lepszą jakość.
+Zachowanie
+Zaawansowane
+Wiersze na zapytanie
+Zapytania równoległe
+Wiersze kontekstu
+Słownik: jedna para „źródło = cel” w wierszu
+Wyczyść pamięć podręczną tłumaczeń
+Języki
+Zatrzymaj
+Ustawienia
+Szukanie napisów…
+Nie znaleziono pliku napisów – tłumaczenie na żywo
+Tłumaczenie: {pct}%
+Tłumaczenie gotowe (wiersze: {n})
+Błąd tłumaczenia: {msg}
+Włącz napisy (CC) w odtwarzaczu, aby można je było przetłumaczyć.
+Własny / lokalny (zgodny z OpenAI)

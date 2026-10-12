@@ -1,0 +1,72 @@
+Oversæt denne video
+Oversæt
+Stil
+Original
+Websted
+Genveje
+Oversættelsesmotor
+API-nøgle
+Model
+Fra
+Til
+Registrer automatisk
+Vis den originale linje
+Skjul webstedets egne undertekster
+Oversæt automatisk
+Test motor
+Avanceret…
+{n} modeller fundet
+Størrelse
+Uigennemsigtighed
+Afstand fra bunden
+Tekstfarve
+Konturfarve
+Konturbredde
+Skygge
+Ingen
+Normal
+Kraftig
+Skrifttype
+Billedformat
+Automatisk
+Lodret (Shorts/TikTok)
+Træk for at placere
+Flyt til toppen
+Samme som oversættelsen
+Linjeafstand
+Aktuelt websted:
+Gem for dette websted
+Nulstil
+Nulstil undertekststil
+Nulstil alle indstillinger for undertekststil? Din motor og dine nøgler beholdes.
+Start / stop oversættelse
+Vis / skjul undertekster
+Vis / skjul den originale linje
+Ingen aktiv fane fundet.
+Siden kan ikke nås. Genindlæs den, og prøv igen.
+Ingen video fundet på denne side. Start videoen, og prøv igen.
+Uventet fejl.
+Fejl
+Sprog
+Automatisk (browserens sprog)
+Basis-URL
+Vis modeller
+"Vis modeller" viser de modeller, din nøgle kan bruge.
+Gratis, men med begrænsning på antal forespørgsler. LLM-motorer giver bedre kvalitet.
+Adfærd
+Avanceret
+Linjer pr. forespørgsel
+Parallelle forespørgsler
+Kontekstlinjer
+Ordliste: ét "kilde = mål" pr. linje
+Ryd oversættelsescache
+Sprog
+Stop
+Indstillinger
+Søger efter undertekster…
+Ingen undertekstfil fundet – oversætter live
+Oversætter {pct} %
+Oversættelsen er klar ({n} linjer)
+Oversættelsesfejl: {msg}
+Slå afspillerens undertekster (CC) til, så de kan oversættes.
+Brugerdefineret / lokal (OpenAI-kompatibel)

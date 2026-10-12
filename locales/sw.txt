@@ -1,0 +1,72 @@
+Tafsiri video hii
+Tafsiri
+Mtindo
+Asili
+Tovuti
+Njia za mkato
+Injini ya tafsiri
+Ufunguo wa API
+Modeli
+Kutoka
+Kwenda
+Gundua kiotomatiki
+Onyesha mstari asili
+Ficha manukuu ya tovuti yenyewe
+Tafsiri kiotomatiki
+Jaribu injini
+Mipangilio ya juu…
+Modeli {n} zimepatikana
+Ukubwa
+Uwazi
+Umbali kutoka chini
+Rangi ya maandishi
+Rangi ya mchoro wa nje
+Unene wa mchoro wa nje
+Kivuli
+Hakuna
+Kawaida
+Kali
+Fonti
+Uwiano wa skrini
+Kiotomatiki
+Wima (Shorts/TikTok)
+Buruta kuweka mahali
+Hamisha juu
+Sawa na tafsiri
+Nafasi kati ya mistari
+Tovuti ya sasa:
+Hifadhi kwa tovuti hii
+Weka upya
+Weka upya mtindo wa manukuu
+Weka upya mipangilio yote ya mtindo wa manukuu? Injini na funguo zako zitabaki.
+Anza / simamisha tafsiri
+Onyesha / ficha manukuu
+Onyesha / ficha mstari asili
+Hakuna kichupo amilifu kilichopatikana.
+Haiwezi kufikia ukurasa huu. Upakie upya kisha ujaribu tena.
+Hakuna video iliyopatikana kwenye ukurasa huu. Cheza video kisha ujaribu tena.
+Hitilafu isiyotarajiwa.
+Hitilafu
+Lugha
+Kiotomatiki (lugha ya kivinjari)
+URL msingi
+Orodhesha modeli
+"Orodhesha modeli" huonyesha modeli ambazo ufunguo wako unaweza kutumia.
+Bure, lakini ina kikomo cha maombi. Injini za LLM hutoa ubora bora.
+Tabia
+Mipangilio ya juu
+Mistari kwa kila ombi
+Maombi sambamba
+Mistari ya muktadha
+Faharasa: "asili = tafsiri" moja kwa kila mstari
+Futa kashe ya tafsiri
+Lugha
+Simamisha
+Mipangilio
+Inatafuta manukuu…
+Faili ya manukuu haikupatikana – inatafsiri moja kwa moja
+Inatafsiri {pct}%
+Tafsiri iko tayari (mistari {n})
+Hitilafu ya tafsiri: {msg}
+Washa manukuu (CC) ya kicheza ili yaweze kutafsiriwa.
+Maalum / ya ndani (inayooana na OpenAI)

@@ -1,0 +1,72 @@
+A videó fordítása
+Fordítás
+Stílus
+Eredeti
+Webhely
+Gyorsbillentyűk
+Fordítómotor
+API-kulcs
+Modell
+Forrás
+Cél
+Automatikus felismerés
+Eredeti sor megjelenítése
+A webhely saját feliratainak elrejtése
+Automatikus fordítás
+Motor tesztelése
+Speciális…
+{n} modell található
+Méret
+Átlátszatlanság
+Távolság alulról
+Szövegszín
+Körvonal színe
+Körvonal vastagsága
+Árnyék
+Nincs
+Normál
+Erős
+Betűtípus
+Képarány
+Automatikus
+Álló (Shorts/TikTok)
+Húzással pozicionálás
+Áthelyezés felülre
+Megegyezik a fordítással
+Sorköz
+Jelenlegi webhely:
+Mentés ehhez a webhelyhez
+Visszaállítás
+Feliratstílus visszaállítása
+Visszaállítja az összes feliratstílus-beállítást? A motor és a kulcsok megmaradnak.
+Fordítás indítása / leállítása
+Feliratok megjelenítése / elrejtése
+Eredeti sor megjelenítése / elrejtése
+Nem található aktív lap.
+Az oldal nem érhető el. Töltse újra, és próbálja meg ismét.
+Nem található videó ezen az oldalon. Indítsa el a videót, és próbálja meg ismét.
+Váratlan hiba.
+Hiba
+Nyelv
+Automatikus (a böngésző nyelve)
+Alap URL
+Modellek listázása
+A „Modellek listázása” megmutatja a kulcsával használható modelleket.
+Ingyenes, de korlátozott számú kérés. Az LLM-motorok jobb minőséget adnak.
+Viselkedés
+Speciális
+Sorok kérésenként
+Párhuzamos kérések
+Kontextussorok
+Szójegyzék: soronként egy „forrás = cél”
+Fordítási gyorsítótár törlése
+Nyelvek
+Leállítás
+Beállítások
+Feliratok keresése…
+Nem található feliratfájl – élő fordítás folyik
+Fordítás: {pct}%
+A fordítás kész ({n} sor)
+Fordítási hiba: {msg}
+Kapcsolja be a lejátszó feliratait (CC), hogy le lehessen fordítani őket.
+Egyéni / helyi (OpenAI-kompatibilis)

@@ -1,0 +1,72 @@
+Přeložit toto video
+Přeložit
+Styl
+Originál
+Web
+Zkratky
+Překladač
+Klíč API
+Model
+Z
+Do
+Automatická detekce
+Zobrazit původní řádek
+Skrýt vlastní titulky webu
+Překládat automaticky
+Otestovat překladač
+Upřesnit…
+Nalezeno modelů: {n}
+Velikost
+Průhlednost
+Vzdálenost od spodku
+Barva textu
+Barva obrysu
+Šířka obrysu
+Stín
+Žádný
+Normální
+Silný
+Písmo
+Poměr stran
+Auto
+Na výšku (Shorts/TikTok)
+Přetažením umístit
+Přesunout nahoru
+Stejné jako překlad
+Mezera mezi řádky
+Aktuální web:
+Uložit pro tento web
+Obnovit
+Obnovit styl titulků
+Obnovit všechna nastavení stylu titulků? Překladač a klíče zůstanou zachovány.
+Spustit / zastavit překlad
+Zobrazit / skrýt titulky
+Zobrazit / skrýt původní řádek
+Nebyla nalezena žádná aktivní karta.
+Na tuto stránku se nelze připojit. Načtěte ji znovu a zkuste to znovu.
+Na této stránce nebylo nalezeno žádné video. Spusťte video a zkuste to znovu.
+Neočekávaná chyba.
+Chyba
+Jazyk
+Automaticky (jazyk prohlížeče)
+Základní URL
+Zobrazit modely
+„Zobrazit modely“ ukáže modely, které váš klíč může používat.
+Zdarma, ale s omezením počtu požadavků. Překladače LLM dávají lepší kvalitu.
+Chování
+Upřesnit
+Řádků na požadavek
+Souběžné požadavky
+Řádky kontextu
+Glosář: jedna dvojice „zdroj = cíl“ na řádek
+Vymazat mezipaměť překladů
+Jazyky
+Zastavit
+Nastavení
+Hledání titulků…
+Soubor titulků nenalezen – překlad probíhá živě
+Překládání {pct} %
+Překlad je hotový (řádků: {n})
+Chyba překladu: {msg}
+Zapněte v přehrávači titulky (CC), aby je bylo možné přeložit.
+Vlastní / místní (kompatibilní s OpenAI)

@@ -1,0 +1,72 @@
+Traducir este vídeo
+Traducir
+Estilo
+Original
+Sitio
+Atajos
+Motor de traducción
+Clave API
+Modelo
+Desde
+A
+Detectar automáticamente
+Mostrar la línea original
+Ocultar los subtítulos propios del sitio
+Traducir automáticamente
+Probar motor
+Avanzado…
+{n} modelos encontrados
+Tamaño
+Opacidad
+Distancia desde abajo
+Color del texto
+Color del contorno
+Grosor del contorno
+Sombra
+Ninguna
+Normal
+Fuerte
+Fuente
+Relación de aspecto
+Automática
+Vertical (Shorts/TikTok)
+Arrastrar para posicionar
+Mover arriba
+Igual que la traducción
+Espacio entre líneas
+Sitio actual:
+Guardar para este sitio
+Restablecer
+Restablecer estilo de subtítulos
+¿Restablecer todos los ajustes de estilo? Tu motor y tus claves se conservan.
+Iniciar / detener traducción
+Mostrar / ocultar subtítulos
+Mostrar / ocultar línea original
+No se encontró ninguna pestaña activa.
+No se puede acceder a esta página. Recárgala e inténtalo de nuevo.
+No se encontró ningún vídeo en esta página. Reproduce el vídeo e inténtalo de nuevo.
+Error inesperado.
+Error
+Idioma
+Automático (idioma del navegador)
+URL base
+Listar modelos
+«Listar modelos» muestra los modelos que puede usar tu clave.
+Gratis, pero con límite de uso. Los motores LLM dan mejor calidad.
+Comportamiento
+Avanzado
+Líneas por solicitud
+Solicitudes en paralelo
+Líneas de contexto
+Glosario: un «origen = destino» por línea
+Borrar caché de traducción
+Idiomas
+Detener
+Ajustes
+Buscando subtítulos…
+No se encontró archivo de subtítulos – traduciendo en directo
+Traduciendo {pct} %
+Traducción lista ({n} líneas)
+Error de traducción: {msg}
+Activa los subtítulos (CC) del reproductor para poder traducirlos.
+Personalizado / local (compatible con OpenAI)

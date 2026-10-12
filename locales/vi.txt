@@ -1,0 +1,72 @@
+Dịch video này
+Dịch
+Kiểu
+Gốc
+Trang web
+Phím tắt
+Công cụ dịch
+Khóa API
+Mô hình
+Từ
+Sang
+Tự động phát hiện
+Hiện dòng gốc
+Ẩn phụ đề có sẵn của trang
+Tự động dịch
+Kiểm tra công cụ
+Nâng cao…
+Tìm thấy {n} mô hình
+Kích thước
+Độ mờ
+Khoảng cách từ đáy
+Màu chữ
+Màu viền
+Độ dày viền
+Bóng
+Không
+Bình thường
+Đậm
+Phông chữ
+Tỷ lệ khung hình
+Tự động
+Dọc (Shorts/TikTok)
+Kéo để định vị
+Chuyển lên trên
+Giống bản dịch
+Khoảng cách giữa các dòng
+Trang hiện tại:
+Lưu cho trang này
+Đặt lại
+Đặt lại kiểu phụ đề
+Đặt lại tất cả cài đặt kiểu phụ đề? Công cụ và khóa của bạn vẫn được giữ.
+Bắt đầu / dừng dịch
+Hiện / ẩn phụ đề
+Hiện / ẩn dòng gốc
+Không tìm thấy tab đang hoạt động.
+Không thể truy cập trang này. Hãy tải lại rồi thử lại.
+Không tìm thấy video trên trang này. Hãy phát video rồi thử lại.
+Lỗi không mong muốn.
+Lỗi
+Ngôn ngữ
+Tự động (ngôn ngữ trình duyệt)
+URL gốc
+Liệt kê mô hình
+"Liệt kê mô hình" hiển thị các mô hình mà khóa của bạn dùng được.
+Miễn phí nhưng giới hạn số yêu cầu. Công cụ LLM cho chất lượng tốt hơn.
+Hành vi
+Nâng cao
+Số dòng mỗi yêu cầu
+Yêu cầu song song
+Dòng ngữ cảnh
+Bảng thuật ngữ: mỗi dòng một cặp "gốc = dịch"
+Xóa bộ nhớ đệm bản dịch
+Ngôn ngữ
+Dừng
+Cài đặt
+Đang tìm phụ đề…
+Không tìm thấy tệp phụ đề – đang dịch trực tiếp
+Đang dịch {pct}%
+Bản dịch đã sẵn sàng ({n} dòng)
+Lỗi dịch: {msg}
+Hãy bật phụ đề (CC) của trình phát để có thể dịch.
+Tùy chỉnh / cục bộ (tương thích OpenAI)

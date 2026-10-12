@@ -1,0 +1,72 @@
+Översätt den här videon
+Översätt
+Stil
+Original
+Webbplats
+Genvägar
+Översättningsmotor
+API-nyckel
+Modell
+Från
+Till
+Identifiera automatiskt
+Visa originalraden
+Dölj webbplatsens egna undertexter
+Översätt automatiskt
+Testa motorn
+Avancerat…
+{n} modeller hittades
+Storlek
+Opacitet
+Avstånd från botten
+Textfärg
+Konturfärg
+Konturbredd
+Skugga
+Ingen
+Normal
+Kraftig
+Teckensnitt
+Bildformat
+Automatiskt
+Stående (Shorts/TikTok)
+Dra för att placera
+Flytta överst
+Samma som översättningen
+Radavstånd
+Aktuell webbplats:
+Spara för den här webbplatsen
+Återställ
+Återställ undertextstil
+Återställa alla undertextstilar? Din motor och dina nycklar behålls.
+Starta / stoppa översättning
+Visa / dölj undertexter
+Visa / dölj originalraden
+Ingen aktiv flik hittades.
+Det går inte att nå sidan. Ladda om den och försök igen.
+Ingen video hittades på sidan. Starta videon och försök igen.
+Oväntat fel.
+Fel
+Språk
+Automatiskt (webbläsarens språk)
+Bas-URL
+Visa modeller
+”Visa modeller” visar modellerna som din nyckel kan använda.
+Gratis, men med begränsning av antal anrop. LLM-motorer ger bättre kvalitet.
+Beteende
+Avancerat
+Rader per förfrågan
+Parallella förfrågningar
+Kontextrader
+Ordlista: ett ”källa = mål” per rad
+Rensa översättningscache
+Språk
+Stoppa
+Inställningar
+Letar efter undertexter…
+Ingen undertextfil hittades – översätter live
+Översätter {pct} %
+Översättningen är klar ({n} rader)
+Översättningsfel: {msg}
+Slå på spelarens undertexter (CC) så att de kan översättas.
+Anpassad / lokal (OpenAI-kompatibel)

@@ -1,0 +1,72 @@
+Dieses Video übersetzen
+Übersetzen
+Stil
+Original
+Seite
+Tasten
+Übersetzungsmodul
+API-Schlüssel
+Modell
+Von
+Nach
+Automatisch erkennen
+Originalzeile anzeigen
+Eigene Untertitel der Seite ausblenden
+Automatisch übersetzen
+Modul testen
+Erweitert…
+{n} Modelle gefunden
+Größe
+Deckkraft
+Abstand von unten
+Textfarbe
+Konturfarbe
+Konturbreite
+Schatten
+Keiner
+Normal
+Stark
+Schriftart
+Seitenverhältnis
+Automatisch
+Hochformat (Shorts/TikTok)
+Per Ziehen positionieren
+Nach oben verschieben
+Wie die Übersetzung
+Zeilenabstand
+Aktuelle Seite:
+Für diese Seite speichern
+Zurücksetzen
+Untertitelstil zurücksetzen
+Alle Untertitel-Stileinstellungen zurücksetzen? Modul und Schlüssel bleiben erhalten.
+Übersetzung starten / stoppen
+Untertitel ein- / ausblenden
+Originalzeile ein- / ausblenden
+Kein aktiver Tab gefunden.
+Auf diese Seite kann nicht zugegriffen werden. Neu laden und erneut versuchen.
+Auf dieser Seite wurde kein Video gefunden. Video starten und erneut versuchen.
+Unerwarteter Fehler.
+Fehler
+Sprache
+Automatisch (Browsersprache)
+Basis-URL
+Modelle auflisten
+„Modelle auflisten“ zeigt die Modelle, die Ihr Schlüssel nutzen kann.
+Kostenlos, aber mit Ratenlimit. LLM-Module liefern bessere Qualität.
+Verhalten
+Erweitert
+Zeilen pro Anfrage
+Parallele Anfragen
+Kontextzeilen
+Glossar: ein „Quelle = Ziel“ pro Zeile
+Übersetzungscache leeren
+Sprachen
+Stopp
+Einstellungen
+Suche nach Untertiteln…
+Keine Untertiteldatei gefunden – Live-Übersetzung läuft
+Übersetze {pct} %
+Übersetzung fertig ({n} Zeilen)
+Übersetzungsfehler: {msg}
+Schalten Sie die Untertitel (CC) des Players ein, damit sie übersetzt werden können.
+Benutzerdefiniert / lokal (OpenAI-kompatibel)

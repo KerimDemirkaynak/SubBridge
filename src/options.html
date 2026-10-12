@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SubBridge</title>
+<style>
+  :root { color-scheme: light dark; --bd: #8884; --ac: #6366f1; }
+  body { font: 14px/1.45 system-ui, sans-serif; max-width: 640px; margin: 28px auto; padding: 0 16px; }
+  h1 { font-size: 20px; margin: 0 0 14px; } h2 { font-size: 15px; margin: 26px 0 8px; border-bottom: 1px solid var(--bd); padding-bottom: 4px; }
+  label { display: block; margin: 12px 0 4px; font-weight: 600; }
+  input, select, textarea { width: 100%; box-sizing: border-box; padding: 7px 9px; font: inherit; border: 1px solid var(--bd); border-radius: 6px; background: transparent; color: inherit; }
+  textarea { min-height: 70px; resize: vertical; }
+  .row { display: flex; gap: 10px; } .row > * { flex: 1; }
+  .chk { display: flex; gap: 8px; align-items: center; font-weight: 400; margin: 10px 0; } .chk input { width: auto; }
+  button { padding: 7px 14px; font: inherit; border: 1px solid var(--bd); border-radius: 6px; background: transparent; color: inherit; cursor: pointer; }
+  button.p { background: var(--ac); border-color: var(--ac); color: #fff; }
+  .hint { font-size: 12px; opacity: .65; margin-top: 4px; }
+  #status { margin-top: 10px; min-height: 20px; white-space: pre-wrap; }
+  .ok { color: #22a06b; } .bad { color: #e5484d; }
+  .panel { display: none; } .panel.on { display: block; }
+</style>
+</head>
+<body>
+<h1>🌉 SubBridge</h1>
+
+<h2 data-i18n="p_engine">Translation engine</h2>
+<select id="provider"></select>
+
+<div id="p-google" class="panel"><div class="hint" data-i18n="o_google_hint"></div></div>
+
+<div id="p-llm" class="panel">
+  <label data-i18n="p_key">API key</label>
+  <input id="apiKey" type="password" autocomplete="off" spellcheck="false">
+  <div id="baseWrap"><label data-i18n="o_base">Base URL</label><input id="baseUrl" spellcheck="false"><div class="hint" id="endpoint"></div></div>
+  <div id="modelWrap">
+    <label data-i18n="p_model">Model</label>
+    <div class="row"><input id="model" list="models" spellcheck="false" style="flex:3"><button id="list" style="flex:1" data-i18n="o_list">List models</button></div>
+    <datalist id="models"></datalist>
+    <div class="hint" data-i18n="o_model_hint"></div>
+  </div>
+</div>
+
+<h2 data-i18n="o_langs">Languages</h2>
+<div class="row">
+  <div><label data-i18n="p_src">From</label><select id="sourceLang"></select></div>
+  <div><label data-i18n="p_tgt">To</label><select id="targetLang"></select></div>
+</div>
+<label data-i18n="ui_lang_label">Language</label>
+<select id="uiLang"></select>
+
+<h2 data-i18n="o_behaviour">Behavior</h2>
+<label class="chk"><input type="checkbox" id="hideOriginal"><span data-i18n="p_hide_site"></span></label>
+<label class="chk"><input type="checkbox" id="autoStart"><span data-i18n="p_auto"></span></label>
+
+<h2 data-i18n="o_adv">Advanced</h2>
+<div class="row">
+  <div><label data-i18n="o_batch">Lines per request</label><input id="batchSize" type="number" min="5" max="80"></div>
+  <div><label data-i18n="o_conc">Parallel requests</label><input id="concurrency" type="number" min="1" max="8"></div>
+  <div><label data-i18n="o_ctx">Context lines</label><input id="ctxLines" type="number" min="0" max="10"></div>
+</div>
+<label data-i18n="o_gloss">Glossary</label>
+<textarea id="glossary" spellcheck="false" placeholder="Senpai = Senpai&#10;Hokage = Hokage"></textarea>
+
+<div style="margin-top:22px;display:flex;gap:10px">
+  <button class="p" id="test" data-i18n="p_test">Test engine</button>
+  <button id="clear" data-i18n="o_clear">Clear translation cache</button>
+</div>
+<div id="status"></div>
+
+<script src="i18n.js"></script>
+<script src="providers.js"></script>
+<script src="ui-util.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

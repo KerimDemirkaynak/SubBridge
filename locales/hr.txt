@@ -1,0 +1,72 @@
+Prevedi ovaj videozapis
+Prevedi
+Stil
+Izvornik
+Web-mjesto
+Prečaci
+Mehanizam prevođenja
+API ključ
+Model
+S
+Na
+Automatsko otkrivanje
+Prikaži izvorni redak
+Sakrij vlastite titlove web-mjesta
+Prevedi automatski
+Testiraj mehanizam
+Napredno…
+Pronađeno modela: {n}
+Veličina
+Neprozirnost
+Udaljenost od dna
+Boja teksta
+Boja obruba
+Debljina obruba
+Sjena
+Nema
+Normalna
+Jaka
+Font
+Omjer slike
+Automatski
+Okomito (Shorts/TikTok)
+Povuci za pozicioniranje
+Premjesti na vrh
+Isto kao prijevod
+Razmak između redaka
+Trenutno web-mjesto:
+Spremi za ovo web-mjesto
+Poništi
+Poništi stil titlova
+Poništiti sve postavke stila titlova? Mehanizam i ključevi ostaju sačuvani.
+Pokreni / zaustavi prevođenje
+Prikaži / sakrij titlove
+Prikaži / sakrij izvorni redak
+Nije pronađena aktivna kartica.
+Stranici nije moguće pristupiti. Osvježite je i pokušajte ponovno.
+Na ovoj stranici nije pronađen videozapis. Pokrenite videozapis i pokušajte ponovno.
+Neočekivana pogreška.
+Pogreška
+Jezik
+Automatski (jezik preglednika)
+Osnovni URL
+Prikaži modele
+„Prikaži modele” prikazuje modele koje vaš ključ može koristiti.
+Besplatno, ali s ograničenjem broja zahtjeva. LLM mehanizmi daju bolju kvalitetu.
+Ponašanje
+Napredno
+Redaka po zahtjevu
+Paralelni zahtjevi
+Retci konteksta
+Rječnik: jedan par „izvor = cilj” po retku
+Očisti predmemoriju prijevoda
+Jezici
+Zaustavi
+Postavke
+Traženje titlova…
+Datoteka titlova nije pronađena – prevodi se uživo
+Prevođenje {pct} %
+Prijevod je spreman ({n} redaka)
+Pogreška prevođenja: {msg}
+Uključite titlove (CC) u playeru kako bi se mogli prevesti.
+Prilagođeno / lokalno (kompatibilno s OpenAI-jem)

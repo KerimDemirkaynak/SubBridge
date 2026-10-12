@@ -1,0 +1,72 @@
+I-translate ang video na ito
+I-translate
+Istilo
+Orihinal
+Site
+Mga shortcut
+Translation engine
+API key
+Model
+Mula sa
+Patungo sa
+Awtomatikong tukuyin
+Ipakita ang orihinal na linya
+Itago ang sariling subtitle ng site
+Awtomatikong i-translate
+Subukan ang engine
+Advanced…
+May {n} model na nakita
+Laki
+Opacity
+Layo mula sa ibaba
+Kulay ng teksto
+Kulay ng outline
+Kapal ng outline
+Anino
+Wala
+Normal
+Malakas
+Font
+Aspect ratio
+Awtomatiko
+Patayo (Shorts/TikTok)
+I-drag para iposisyon
+Ilipat sa itaas
+Kapareho ng translation
+Pagitan ng mga linya
+Kasalukuyang site:
+I-save para sa site na ito
+I-reset
+I-reset ang istilo ng subtitle
+I-reset ang lahat ng setting ng istilo ng subtitle? Mananatili ang iyong engine at mga key.
+Simulan / ihinto ang pag-translate
+Ipakita / itago ang mga subtitle
+Ipakita / itago ang orihinal na linya
+Walang aktibong tab na nahanap.
+Hindi maabot ang pahinang ito. I-reload ito at subukan muli.
+Walang video na nahanap sa pahinang ito. I-play ang video at subukan muli.
+Hindi inaasahang error.
+Error
+Wika
+Awtomatiko (wika ng browser)
+Base URL
+Ilista ang mga model
+Ipinapakita ng "Ilista ang mga model" ang mga model na magagamit ng iyong key.
+Libre, pero may limitasyon sa dami ng request. Mas mataas ang kalidad ng mga LLM engine.
+Pag-uugali
+Advanced
+Mga linya bawat request
+Magkakasabay na request
+Mga linya ng konteksto
+Glossary: isang "orihinal = salin" bawat linya
+I-clear ang translation cache
+Mga wika
+Ihinto
+Mga setting
+Naghahanap ng mga subtitle…
+Walang nahanap na subtitle file – live na nagta-translate
+Nagta-translate {pct}%
+Handa na ang translation ({n} linya)
+Error sa translation: {msg}
+I-on ang mga caption (CC) ng player para ma-translate ang mga ito.
+Custom / lokal (compatible sa OpenAI)

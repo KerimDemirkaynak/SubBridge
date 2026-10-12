@@ -1,0 +1,72 @@
+Traduzir este vídeo
+Traduzir
+Estilo
+Original
+Site
+Atalhos
+Mecanismo de tradução
+Chave de API
+Modelo
+De
+Para
+Detectar automaticamente
+Mostrar a linha original
+Ocultar as legendas do próprio site
+Traduzir automaticamente
+Testar mecanismo
+Avançado…
+{n} modelos encontrados
+Tamanho
+Opacidade
+Distância da parte inferior
+Cor do texto
+Cor do contorno
+Espessura do contorno
+Sombra
+Nenhuma
+Normal
+Forte
+Fonte
+Proporção da tela
+Automática
+Vertical (Shorts/TikTok)
+Arrastar para posicionar
+Mover para o topo
+Igual à tradução
+Espaço entre linhas
+Site atual:
+Salvar para este site
+Redefinir
+Redefinir estilo das legendas
+Redefinir todas as configurações de estilo? Seu mecanismo e suas chaves são mantidos.
+Iniciar / parar tradução
+Mostrar / ocultar legendas
+Mostrar / ocultar linha original
+Nenhuma guia ativa encontrada.
+Não foi possível acessar esta página. Recarregue-a e tente novamente.
+Nenhum vídeo encontrado nesta página. Inicie o vídeo e tente novamente.
+Erro inesperado.
+Erro
+Idioma
+Automático (idioma do navegador)
+URL base
+Listar modelos
+"Listar modelos" mostra os modelos que sua chave pode usar.
+Grátis, mas com limite de uso. Os mecanismos LLM dão melhor qualidade.
+Comportamento
+Avançado
+Linhas por solicitação
+Solicitações paralelas
+Linhas de contexto
+Glossário: um "origem = destino" por linha
+Limpar cache de tradução
+Idiomas
+Parar
+Configurações
+Procurando legendas…
+Nenhum arquivo de legenda encontrado – traduzindo ao vivo
+Traduzindo {pct}%
+Tradução pronta ({n} linhas)
+Erro de tradução: {msg}
+Ative as legendas (CC) do player para poder traduzi-las.
+Personalizado / local (compatível com OpenAI)

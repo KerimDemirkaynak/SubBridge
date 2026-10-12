@@ -1,0 +1,72 @@
+Terjemahkan video ini
+Terjemahkan
+Gaya
+Asli
+Situs
+Pintasan
+Mesin terjemahan
+Kunci API
+Model
+Dari
+Ke
+Deteksi otomatis
+Tampilkan baris asli
+Sembunyikan teks bawaan situs
+Terjemahkan otomatis
+Uji mesin
+Lanjutan…
+{n} model ditemukan
+Ukuran
+Opasitas
+Jarak dari bawah
+Warna teks
+Warna garis tepi
+Ketebalan garis tepi
+Bayangan
+Tidak ada
+Normal
+Kuat
+Font
+Rasio aspek
+Otomatis
+Vertikal (Shorts/TikTok)
+Seret untuk mengatur posisi
+Pindah ke atas
+Sama seperti terjemahan
+Jarak antarbaris
+Situs saat ini:
+Simpan untuk situs ini
+Atur ulang
+Atur ulang gaya subtitle
+Atur ulang semua pengaturan gaya subtitle? Mesin dan kunci Anda tetap tersimpan.
+Mulai / hentikan terjemahan
+Tampilkan / sembunyikan subtitle
+Tampilkan / sembunyikan baris asli
+Tab aktif tidak ditemukan.
+Tidak dapat mengakses halaman ini. Muat ulang lalu coba lagi.
+Tidak ada video di halaman ini. Putar videonya lalu coba lagi.
+Terjadi kesalahan tak terduga.
+Kesalahan
+Bahasa
+Otomatis (bahasa browser)
+URL dasar
+Daftar model
+"Daftar model" menampilkan model yang dapat dipakai kunci Anda.
+Gratis, tetapi dibatasi laju permintaan. Mesin LLM memberi kualitas lebih baik.
+Perilaku
+Lanjutan
+Baris per permintaan
+Permintaan paralel
+Baris konteks
+Glosarium: satu "asal = terjemahan" per baris
+Hapus cache terjemahan
+Bahasa
+Berhenti
+Pengaturan
+Mencari subtitle…
+File subtitle tidak ditemukan – menerjemahkan secara langsung
+Menerjemahkan {pct}%
+Terjemahan siap ({n} baris)
+Kesalahan terjemahan: {msg}
+Aktifkan subtitle (CC) di pemutar agar dapat diterjemahkan.
+Kustom / lokal (kompatibel OpenAI)

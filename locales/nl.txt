@@ -1,0 +1,72 @@
+Deze video vertalen
+Vertalen
+Stijl
+Origineel
+Site
+Sneltoetsen
+Vertaalengine
+API-sleutel
+Model
+Van
+Naar
+Automatisch detecteren
+Originele regel tonen
+Eigen ondertitels van de site verbergen
+Automatisch vertalen
+Engine testen
+Geavanceerd…
+{n} modellen gevonden
+Grootte
+Dekking
+Afstand tot onderkant
+Tekstkleur
+Randkleur
+Randdikte
+Schaduw
+Geen
+Normaal
+Sterk
+Lettertype
+Beeldverhouding
+Automatisch
+Verticaal (Shorts/TikTok)
+Slepen om te positioneren
+Naar boven verplaatsen
+Zelfde als vertaling
+Ruimte tussen regels
+Huidige site:
+Opslaan voor deze site
+Resetten
+Ondertitelstijl resetten
+Alle ondertitelstijlen resetten? Je engine en sleutels blijven behouden.
+Vertaling starten / stoppen
+Ondertitels tonen / verbergen
+Originele regel tonen / verbergen
+Geen actief tabblad gevonden.
+Deze pagina is niet bereikbaar. Laad hem opnieuw en probeer het nogmaals.
+Geen video gevonden op deze pagina. Start de video en probeer het nogmaals.
+Onverwachte fout.
+Fout
+Taal
+Automatisch (browsertaal)
+Basis-URL
+Modellen weergeven
+"Modellen weergeven" toont de modellen die je sleutel kan gebruiken.
+Gratis, maar met een limiet op verzoeken. LLM-engines geven betere kwaliteit.
+Gedrag
+Geavanceerd
+Regels per verzoek
+Parallelle verzoeken
+Contextregels
+Woordenlijst: één "bron = doel" per regel
+Vertaalcache wissen
+Talen
+Stoppen
+Instellingen
+Ondertitels zoeken…
+Geen ondertitelbestand gevonden – live vertalen
+Vertalen {pct}%
+Vertaling klaar ({n} regels)
+Vertaalfout: {msg}
+Zet de ondertitels (CC) van de speler aan zodat ze vertaald kunnen worden.
+Aangepast / lokaal (OpenAI-compatibel)

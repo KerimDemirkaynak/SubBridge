@@ -1,0 +1,72 @@
+Käännä tämä video
+Käännä
+Tyyli
+Alkuperäinen
+Sivusto
+Pikanäppäimet
+Käännösmoottori
+API-avain
+Malli
+Mistä
+Mihin
+Tunnista automaattisesti
+Näytä alkuperäinen rivi
+Piilota sivuston omat tekstitykset
+Käännä automaattisesti
+Testaa moottori
+Lisäasetukset…
+Löytyi {n} mallia
+Koko
+Peittävyys
+Etäisyys alareunasta
+Tekstin väri
+Ääriviivan väri
+Ääriviivan paksuus
+Varjo
+Ei mitään
+Normaali
+Vahva
+Fontti
+Kuvasuhde
+Automaattinen
+Pysty (Shorts/TikTok)
+Vedä paikoilleen
+Siirrä ylös
+Sama kuin käännös
+Riviväli
+Nykyinen sivusto:
+Tallenna tälle sivustolle
+Nollaa
+Nollaa tekstitysten tyyli
+Nollataanko kaikki tekstitysten tyyliasetukset? Moottori ja avaimet säilyvät.
+Aloita / lopeta kääntäminen
+Näytä / piilota tekstitykset
+Näytä / piilota alkuperäinen rivi
+Aktiivista välilehteä ei löytynyt.
+Sivua ei voi käyttää. Lataa se uudelleen ja yritä uudestaan.
+Tältä sivulta ei löytynyt videota. Käynnistä video ja yritä uudestaan.
+Odottamaton virhe.
+Virhe
+Kieli
+Automaattinen (selaimen kieli)
+Perus-URL
+Luettele mallit
+”Luettele mallit” näyttää mallit, joita avaimesi voi käyttää.
+Ilmainen, mutta pyyntömäärä on rajattu. LLM-moottorit tuottavat parempaa laatua.
+Toiminta
+Lisäasetukset
+Riviä pyyntöä kohden
+Rinnakkaiset pyynnöt
+Kontekstirivit
+Sanasto: yksi ”lähde = kohde” riviä kohden
+Tyhjennä käännösvälimuisti
+Kielet
+Pysäytä
+Asetukset
+Etsitään tekstityksiä…
+Tekstitystiedostoa ei löytynyt – käännetään suorana
+Käännetään {pct} %
+Käännös on valmis ({n} riviä)
+Käännösvirhe: {msg}
+Ota soittimen tekstitys (CC) käyttöön, jotta se voidaan kääntää.
+Mukautettu / paikallinen (OpenAI-yhteensopiva)

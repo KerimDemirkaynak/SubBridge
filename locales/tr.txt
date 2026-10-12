@@ -1,0 +1,72 @@
+Bu videoyu çevir
+Çevir
+Stil
+Orijinal
+Site
+Tuşlar
+Çeviri motoru
+API anahtarı
+Model
+Kaynak dil
+Hedef dil
+Otomatik algıla
+Orijinal satırı göster
+Sitenin kendi altyazısını gizle
+Otomatik çevir
+Motoru test et
+Gelişmiş…
+{n} model bulundu
+Boyut
+Saydamlık
+Alttan uzaklık
+Yazı rengi
+Kontur rengi
+Kontur kalınlığı
+Gölge
+Yok
+Normal
+Güçlü
+Yazı tipi
+En-boy oranı
+Otomatik
+Dikey (Shorts/TikTok)
+Sürükleyerek konumlandır
+Üste taşı
+Çeviriyle aynı
+Satırlar arası boşluk
+Geçerli site:
+Bu site için kaydet
+Sıfırla
+Altyazı stilini sıfırla
+Tüm altyazı stil ayarları sıfırlansın mı? Motorun ve anahtarların korunur.
+Çeviriyi başlat / durdur
+Altyazıyı göster / gizle
+Orijinal satırı göster / gizle
+Etkin sekme bulunamadı.
+Bu sayfaya ulaşılamıyor. Sayfayı yenileyip tekrar dene.
+Bu sayfada video bulunamadı. Videoyu başlatıp tekrar dene.
+Beklenmeyen hata.
+Hata
+Dil
+Otomatik (tarayıcı dili)
+Temel URL
+Modelleri listele
+"Modelleri listele", anahtarının kullanabildiği modelleri gösterir.
+Ücretsiz ama istek sınırı var. LLM motorları daha iyi kalite verir.
+Davranış
+Gelişmiş
+İstek başına satır
+Paralel istek
+Bağlam satırı
+Sözlük: her satıra bir "kaynak = hedef"
+Çeviri önbelleğini temizle
+Diller
+Durdur
+Ayarlar
+Altyazı aranıyor…
+Altyazı dosyası bulunamadı – altyazılar canlı çevriliyor
+Çevriliyor %{pct}
+Çeviri hazır ({n} satır)
+Çeviri hatası: {msg}
+Çevrilebilmesi için oynatıcıdaki altyazıyı (CC) aç.
+Özel / yerel (OpenAI uyumlu)

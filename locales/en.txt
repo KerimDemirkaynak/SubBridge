@@ -1,0 +1,72 @@
+Translate this video
+Translate
+Style
+Original
+Site
+Keys
+Translation engine
+API key
+Model
+From
+To
+Auto-detect
+Show original line
+Hide the site's own captions
+Translate automatically
+Test engine
+Advanced…
+{n} models found
+Size
+Opacity
+Distance from bottom
+Text color
+Outline color
+Outline width
+Shadow
+None
+Normal
+Strong
+Font
+Aspect ratio
+Auto
+Vertical (Shorts/TikTok)
+Drag to position
+Move to top
+Same as translation
+Gap between lines
+Current site:
+Save for this site
+Reset
+Reset subtitle style
+Reset all subtitle style settings? Your engine and keys are kept.
+Start / stop translation
+Show / hide subtitles
+Show / hide original line
+No active tab found.
+Can't reach this page. Reload it and try again.
+No video found on this page. Start the video and try again.
+Unexpected error.
+Error
+Language
+Automatic (browser language)
+Base URL
+List models
+"List models" shows the models your key can use.
+Free, but rate-limited. LLM engines give better quality.
+Behavior
+Advanced
+Lines per request
+Parallel requests
+Context lines
+Glossary: one "source = target" per line
+Clear translation cache
+Languages
+Stop
+Settings
+Looking for subtitles…
+No subtitle file found – translating live captions
+Translating {pct}%
+Translation ready ({n} lines)
+Translation error: {msg}
+Turn on the player's captions (CC) so they can be translated.
+Custom / local (OpenAI-compatible)

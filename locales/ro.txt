@@ -1,0 +1,72 @@
+Traduce acest videoclip
+Traduce
+Stil
+Original
+Site
+Scurtături
+Motor de traducere
+Cheie API
+Model
+Din
+În
+Detectare automată
+Afișează linia originală
+Ascunde subtitrările proprii ale site-ului
+Traduce automat
+Testează motorul
+Avansat…
+{n} modele găsite
+Dimensiune
+Opacitate
+Distanța de jos
+Culoarea textului
+Culoarea conturului
+Grosimea conturului
+Umbră
+Fără
+Normală
+Puternică
+Font
+Raport de aspect
+Automat
+Vertical (Shorts/TikTok)
+Trage pentru poziționare
+Mută sus
+La fel ca traducerea
+Spațiu între rânduri
+Site curent:
+Salvează pentru acest site
+Resetează
+Resetează stilul subtitrărilor
+Resetezi toate setările de stil? Motorul și cheile tale se păstrează.
+Pornește / oprește traducerea
+Afișează / ascunde subtitrările
+Afișează / ascunde linia originală
+Nu a fost găsită nicio filă activă.
+Nu se poate accesa această pagină. Reîncarc-o și încearcă din nou.
+Nu a fost găsit niciun videoclip pe această pagină. Pornește videoclipul și încearcă din nou.
+Eroare neașteptată.
+Eroare
+Limbă
+Automat (limba browserului)
+URL de bază
+Listează modelele
+„Listează modelele” afișează modelele pe care le poate folosi cheia ta.
+Gratuit, dar cu limită de cereri. Motoarele LLM oferă o calitate mai bună.
+Comportament
+Avansat
+Rânduri per cerere
+Cereri paralele
+Rânduri de context
+Glosar: câte un „sursă = țintă” pe rând
+Șterge memoria cache a traducerilor
+Limbi
+Oprește
+Setări
+Se caută subtitrări…
+Nu s-a găsit niciun fișier de subtitrări – se traduce în direct
+Se traduce {pct}%
+Traducere gata ({n} rânduri)
+Eroare de traducere: {msg}
+Activează subtitrările (CC) din player pentru a le putea traduce.
+Personalizat / local (compatibil OpenAI)

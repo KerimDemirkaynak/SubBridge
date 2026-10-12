@@ -1,0 +1,72 @@
+Oversett denne videoen
+Oversett
+Stil
+Original
+Nettsted
+Hurtigtaster
+Oversettelsesmotor
+API-nøkkel
+Modell
+Fra
+Til
+Oppdag automatisk
+Vis originallinjen
+Skjul nettstedets egne undertekster
+Oversett automatisk
+Test motor
+Avansert…
+{n} modeller funnet
+Størrelse
+Ugjennomsiktighet
+Avstand fra bunnen
+Tekstfarge
+Konturfarge
+Konturbredde
+Skygge
+Ingen
+Normal
+Kraftig
+Skrifttype
+Sideforhold
+Automatisk
+Stående (Shorts/TikTok)
+Dra for å plassere
+Flytt til toppen
+Samme som oversettelsen
+Linjeavstand
+Gjeldende nettsted:
+Lagre for dette nettstedet
+Tilbakestill
+Tilbakestill undertekststil
+Tilbakestille alle innstillinger for undertekststil? Motoren og nøklene dine beholdes.
+Start / stopp oversettelse
+Vis / skjul undertekster
+Vis / skjul originallinjen
+Fant ingen aktiv fane.
+Får ikke tilgang til denne siden. Last den på nytt og prøv igjen.
+Fant ingen video på denne siden. Start videoen og prøv igjen.
+Uventet feil.
+Feil
+Språk
+Automatisk (nettleserens språk)
+Basis-URL
+Vis modeller
+«Vis modeller» viser modellene nøkkelen din kan bruke.
+Gratis, men med begrensning på antall forespørsler. LLM-motorer gir bedre kvalitet.
+Oppførsel
+Avansert
+Linjer per forespørsel
+Parallelle forespørsler
+Kontekstlinjer
+Ordliste: én «kilde = mål» per linje
+Tøm oversettelsesbufferen
+Språk
+Stopp
+Innstillinger
+Leter etter undertekster…
+Fant ingen undertekstfil – oversetter live
+Oversetter {pct} %
+Oversettelsen er klar ({n} linjer)
+Oversettelsesfeil: {msg}
+Slå på spillerens undertekster (CC) slik at de kan oversettes.
+Egendefinert / lokal (OpenAI-kompatibel)

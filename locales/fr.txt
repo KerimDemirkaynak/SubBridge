@@ -1,0 +1,72 @@
+Traduire cette vidéo
+Traduire
+Style
+Original
+Site
+Raccourcis
+Moteur de traduction
+Clé API
+Modèle
+De
+Vers
+Détection automatique
+Afficher la ligne d'origine
+Masquer les sous-titres du site
+Traduire automatiquement
+Tester le moteur
+Avancé…
+{n} modèles trouvés
+Taille
+Opacité
+Distance depuis le bas
+Couleur du texte
+Couleur du contour
+Épaisseur du contour
+Ombre
+Aucune
+Normale
+Forte
+Police
+Format d'image
+Auto
+Vertical (Shorts/TikTok)
+Glisser pour positionner
+Déplacer en haut
+Identique à la traduction
+Espace entre les lignes
+Site actuel :
+Enregistrer pour ce site
+Réinitialiser
+Réinitialiser le style des sous-titres
+Réinitialiser tous les réglages de style ? Votre moteur et vos clés sont conservés.
+Démarrer / arrêter la traduction
+Afficher / masquer les sous-titres
+Afficher / masquer la ligne d'origine
+Aucun onglet actif trouvé.
+Impossible d'accéder à cette page. Rechargez-la et réessayez.
+Aucune vidéo trouvée sur cette page. Lancez la vidéo et réessayez.
+Erreur inattendue.
+Erreur
+Langue
+Automatique (langue du navigateur)
+URL de base
+Lister les modèles
+« Lister les modèles » affiche les modèles utilisables avec votre clé.
+Gratuit, mais limité en débit. Les moteurs LLM offrent une meilleure qualité.
+Comportement
+Avancé
+Lignes par requête
+Requêtes parallèles
+Lignes de contexte
+Glossaire : un « source = cible » par ligne
+Vider le cache de traduction
+Langues
+Arrêter
+Réglages
+Recherche des sous-titres…
+Aucun fichier de sous-titres trouvé – traduction en direct
+Traduction en cours : {pct} %
+Traduction prête ({n} lignes)
+Erreur de traduction : {msg}
+Activez les sous-titres (CC) du lecteur pour pouvoir les traduire.
+Personnalisé / local (compatible OpenAI)
