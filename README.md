@@ -1,8 +1,8 @@
-# SubBridge
-
 <p align="center">
   <img src="https://addons.mozilla.org/user-media/addon_icons/3094/3094265-64.png?modified=d6b8385a" alt="SubBridge logo" width="96">
 </p>
+
+<h1 align="center">SubBridge</h1>
 
 <p align="center">
   <strong>Translate video subtitles directly in your browser.</strong>
