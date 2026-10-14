@@ -42,4 +42,37 @@
         } catch (e) {}
         return origSend.apply(this, arguments);
     };
+
+    // The content script lives in an isolated world and cannot see page JS objects.
+    // Players like JW Player and Video.js know exactly which subtitle track is switched on: let it ask.
+    function selectedFromPlayers() {
+        const out = [];
+        try {   // JW Player: index 0 of the captions list is "Off"
+            if (typeof window.jwplayer === "function") {
+                const p = window.jwplayer();
+                if (p && typeof p.getCaptionsList === "function" && typeof p.getCurrentCaptions === "function") {
+                    const list = p.getCaptionsList(), i = p.getCurrentCaptions();
+                    if (Array.isArray(list) && i > 0 && list[i]) out.push(String(list[i].label || list[i].id || ""));
+                }
+            }
+        } catch (e) {}
+        try {   // Video.js
+            if (window.videojs && typeof window.videojs.getPlayers === "function") {
+                for (const pl of Object.values(window.videojs.getPlayers())) {
+                    if (!pl || typeof pl.textTracks !== "function") continue;
+                    const tt = pl.textTracks();
+                    for (let i = 0; i < tt.length; i++) {
+                        const t = tt[i];
+                        if ((t.kind === "subtitles" || t.kind === "captions") && t.mode === "showing") out.push(String(t.label || t.language || ""));
+                    }
+                }
+            }
+        } catch (e) {}
+        return out.filter(Boolean);
+    }
+    window.addEventListener("message", (e) => {
+        const d = e.data;
+        if (e.source !== window || !d || d.__tlAsk !== "selected") return;
+        window.postMessage({ __tlSelected: 1, id: d.id, labels: selectedFromPlayers() }, "*");
+    });
 })();

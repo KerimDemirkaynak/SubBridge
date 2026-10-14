@@ -11,7 +11,7 @@ base = json.loads((root / "manifest.base.json").read_text())
 targets = {
     "chrome": {"background": {"service_worker": "background.js"}},
     "firefox": {
-        "background": {"scripts": ["providers.js", "background.js"]},
+        "background": {"scripts": ["scripts.js", "providers.js", "background.js"]},
         "browser_specific_settings": {"gecko": {
             "id": "subtitle-player-translator@example.com",   # CHANGE to your own id
             "strict_min_version": "142.0",

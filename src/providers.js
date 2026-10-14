@@ -41,7 +41,7 @@ function detectBrowserLang() {
 const LLM_PRESETS = {
     openai:     { name: "OpenAI (ChatGPT)",  baseUrl: "https://api.openai.com/v1",         model: "gpt-4.1-mini" },
     anthropic:  { name: "Anthropic (Claude)", baseUrl: "https://api.anthropic.com/v1",      model: "claude-haiku-5-5", kind: "anthropic" },
-    gemini:     { name: "Google Gemini",      model: "gemini-2.5-flash", kind: "gemini" },
+    gemini:     { name: "Google Gemini",      model: "gemini-3.5-flash-lite", kind: "gemini" },
     openrouter: { name: "OpenRouter",         baseUrl: "https://openrouter.ai/api/v1",      model: "google/gemini-2.5-flash" },
     deepseek:   { name: "DeepSeek",           baseUrl: "https://api.deepseek.com/v1",       model: "deepseek-chat" },
     groq:       { name: "Groq",               baseUrl: "https://api.groq.com/openai/v1",    model: "llama-3.3-70b-versatile" },
@@ -94,6 +94,13 @@ async function tlGetSettings() {
     const s = Object.assign({}, TL_DEFAULTS, saved);
     s.deepl = Object.assign({}, TL_DEFAULTS.deepl, saved.deepl || {});
     for (const id of LLM_IDS) s[id] = Object.assign({}, TL_DEFAULTS[id], saved[id] || {});
+
+    // The Gemini default changed from gemini-2.5-flash to gemini-3.5-flash-lite. Move people who still have the old
+    // default once; the flag is saved along with the settings, so a later deliberate choice of 2.5 sticks.
+    if (!saved._gemini35) {
+        if (s.gemini.model === "gemini-2.5-flash") s.gemini.model = TL_DEFAULTS.gemini.model;
+        s._gemini35 = true;
+    }
 
     // Repair configs that an earlier options-page bug cross-copied between engines.
     const host = (u) => { try { return new URL(u).host; } catch (e) { return ""; } };
@@ -294,7 +301,7 @@ async function geminiRaw(lines, ctx, s) {
             systemInstruction: { parts: [{ text: system }] },
             contents: [{ role: "user", parts: [{ text: user }] }],
             generationConfig: {
-                temperature: 0.2,
+                ...(/^gemini-[12][.-]/.test(g.model) ? { temperature: 0.2 } : {}),   // Gemini 3+ deprecates sampling parameters
                 responseMimeType: "application/json",
                 responseSchema: { type: "OBJECT", properties: { t: { type: "ARRAY", items: { type: "STRING" } } }, required: ["t"] }
             }
@@ -370,32 +377,6 @@ async function translateLines(lines, ctx, s, depth = 0) {
 
 // ---------- "did we get the language we asked for?" ----------
 // Catches an engine answering in the wrong language (e.g. Georgian when Turkish was requested) by looking at the script.
-const SCRIPT_RX = {
-    Latin: /\p{Script=Latin}/u, Cyrillic: /\p{Script=Cyrillic}/u, Arabic: /\p{Script=Arabic}/u, Hebrew: /\p{Script=Hebrew}/u,
-    Greek: /\p{Script=Greek}/u, Thai: /\p{Script=Thai}/u, Devanagari: /\p{Script=Devanagari}/u, Bengali: /\p{Script=Bengali}/u,
-    Tamil: /\p{Script=Tamil}/u, Telugu: /\p{Script=Telugu}/u,
-    Han: /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u, Hangul: /[\p{Script=Hangul}\p{Script=Han}]/u
-};
-const LANG_SCRIPT = {
-    en: "Latin", tr: "Latin", es: "Latin", fr: "Latin", pt: "Latin", id: "Latin", de: "Latin", it: "Latin", pl: "Latin", nl: "Latin",
-    ro: "Latin", cs: "Latin", sv: "Latin", hu: "Latin", ms: "Latin", tl: "Latin", sw: "Latin", vi: "Latin", hr: "Latin", da: "Latin",
-    fi: "Latin", no: "Latin", ru: "Cyrillic", uk: "Cyrillic", bg: "Cyrillic", sr: "Cyrillic", ar: "Arabic", fa: "Arabic", ur: "Arabic",
-    he: "Hebrew", el: "Greek", th: "Thai", hi: "Devanagari", bn: "Bengali", ta: "Tamil", te: "Telugu",
-    "zh-CN": "Han", "zh-TW": "Han", ja: "Han", ko: "Hangul"
-};
-// Share (0..1) of the letters that belong to the expected script. 1 when there is too little text to judge.
-function scriptShare(texts, lang) {
-    const rx = SCRIPT_RX[LANG_SCRIPT[lang]];
-    if (!rx) return 1;
-    let total = 0, ok = 0;
-    for (const ch of texts.join(" ")) {
-        if (!/\p{L}/u.test(ch)) continue;
-        total++;
-        if (rx.test(ch)) ok++;
-    }
-    return total < 4 ? 1 : ok / total;
-}
-
 async function translateChecked(lines, ctx, s) {
     let out = await translateLines(lines, ctx, s);
     if (scriptShare(out, s.targetLang) >= 0.5) return out;

@@ -1,8 +1,8 @@
 // =========================================================================
 // SubBridge - background.js (message router).
-// Chrome: service worker (importScripts). Firefox: background script (manifest lists providers.js first).
+// Chrome: service worker (importScripts). Firefox: background script (manifest lists scripts.js and providers.js first).
 // =========================================================================
-if (typeof importScripts === "function") importScripts("providers.js");
+if (typeof importScripts === "function") importScripts("scripts.js", "providers.js");
 
 const reply = (p, sendResponse) =>
     p.then(r => sendResponse({ ok: true, ...r }))

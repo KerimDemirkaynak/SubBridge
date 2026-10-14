@@ -37,6 +37,7 @@
       "js": [
         "i18n-content.js",
         "content.js",
+        "scripts.js",
         "parsers.js",
         "grabber.js"
       ],

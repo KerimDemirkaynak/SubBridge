@@ -97,24 +97,69 @@
 
     // ---------- source 2: native <track> cues ----------
     const restoreModes = [];
-    function collectTrackCues(video) {
-        const found = [];
-        for (const t of Array.from(video.textTracks || [])) {
-            if (t.kind !== "subtitles" && t.kind !== "captions") continue;
-            if (t.mode === "disabled") { restoreModes.push([t, "disabled"]); t.mode = "hidden"; }   // hidden still loads cues
-            const cues = t.cues ? Array.from(t.cues) : [];
-            if (cues.length) {
-                found.push({
-                    lang: (t.language || "").toLowerCase(),
-                    cues: cues.map(c => ({ start: c.startTime, end: c.endTime, text: cleanText(c.text) })).filter(c => c.text)
-                });
-            }
-        }
-        if (!found.length) return null;
-        const want = (tl.sourceLang || "auto").toLowerCase().split("-")[0];
-        const wanted = tl.sourceLang !== "auto" ? found.find(f => f.lang.startsWith(want)) : null;
-        return (wanted || found.sort((a, b) => b.cues.length - a.cues.length)[0]).cues;
+    const trackCache = new WeakMap();   // converting 500+ cues (HTML-decoding each) is slow: redo it only when the cue list grows
+    function trackCues(t) {
+        const n = t.cues ? t.cues.length : 0;
+        const hit = trackCache.get(t);
+        if (hit && hit.n === n) return hit.cues;
+        const cues = n ? Array.from(t.cues).map(c => ({ start: c.startTime, end: c.endTime, text: cleanText(c.text) })).filter(c => c.text) : [];
+        trackCache.set(t, { n, cues });
+        return cues;
     }
+    function collectTrackCandidates(video) {
+        const out = [];
+        Array.from(video.textTracks || []).forEach((t, i) => {
+            if (t.kind !== "subtitles" && t.kind !== "captions") return;
+            const wasShowing = t.mode === "showing";
+            if (t.mode === "disabled") { restoreModes.push([t, "disabled"]); t.mode = "hidden"; }   // hidden still loads cues
+            const cues = trackCues(t);
+            if (cues.length) out.push({ url: "track:" + (t.label || t.language || i), lang: (t.language || "").toLowerCase(), label: t.label || "", showing: wasShowing, at: 0, cues });
+        });
+        return out;
+    }
+    const sniffedCandidates = () => Array.from(sniffed.values()).map(e => ({ url: e.url, cues: e.cues, at: e.at, lang: "", label: "", showing: false }));
+
+    // The selected entry of a player's subtitle menu (when the menu exists in the page).
+    const SELECTED_MENU_SELECTORS = [
+        ".jw-settings-submenu-captions [aria-checked='true']", ".jw-settings-captions [aria-checked='true']",
+        ".vjs-subtitles-button .vjs-selected", ".vjs-captions-button .vjs-selected",
+        ".plyr__menu__container [data-plyr='language'][aria-checked='true']",
+        "[class*='subtitle' i] [aria-checked='true']", "[class*='caption' i] [aria-checked='true']",
+        "[aria-label*='ubtitle' i] [aria-checked='true']", "[aria-label*='aption' i] [aria-checked='true']"
+    ];
+    function readSelectedMenuLabels() {
+        const out = [];
+        for (const sel of SELECTED_MENU_SELECTORS) {
+            let els = [];
+            try { els = document.querySelectorAll(sel); } catch (e) {}
+            els.forEach(el => { const x = (el.textContent || "").replace(/\s+/g, " ").trim(); if (x && x.length < 60) out.push(x); });
+        }
+        return out;
+    }
+    // Ask the page's own player object (JW Player / Video.js) through hook-main.js, which runs in the page world.
+    function askPagePlayers() {
+        return new Promise((resolve) => {
+            const id = Math.random().toString(36).slice(2);
+            const done = (labels) => { window.removeEventListener("message", onMsg); clearTimeout(timer); resolve(labels || []); };
+            const onMsg = (e) => { const d = e.data; if (e.source === window && d && d.__tlSelected === 1 && d.id === id) done(d.labels); };
+            const timer = setTimeout(() => done([]), 300);
+            window.addEventListener("message", onMsg);
+            window.postMessage({ __tlAsk: "selected", id }, "*");
+        });
+    }
+
+    // What the player is displaying right now (normalised): lets us tell WHICH of several downloaded languages is selected.
+    function readDisplayedCaptions(video) {
+        const out = [];
+        for (const t of Array.from(video.textTracks || [])) {
+            if (t.mode === "showing") for (const c of Array.from(t.activeCues || [])) out.push(cleanText(c.text));
+        }
+        for (const sel of LIVE_SELECTORS) {
+            document.querySelectorAll(sel).forEach(el => { const x = readCaptionText(el).trim(); if (x) out.push(x); });
+        }
+        return out.map(normCaption).filter(Boolean);
+    }
+
     function silenceNativeTracks(video) {
         if (!tl.hideOriginal) return;
         for (const t of Array.from(video.textTracks || [])) {
@@ -134,20 +179,39 @@
         try { if (btn && btn.getAttribute("aria-pressed") === "true") btn.click(); } catch (e) {}
     }
 
+    // -> {cues} | null.  With several languages to choose from it WAITS until it can tell which one is selected
+    // (the first caption line appears, the user picks one in the player, ...) or the user presses Stop.
     async function findCues(video, id) {
         let ytButton = null;
         if (isYouTube && !pickSniffed()) ytButton = enableYouTubeCaptions();
-        const deadline = Date.now() + (isYouTube ? 7000 : 3200);
-        let best = null;
-        while (Date.now() < deadline && id === runId) {
-            const fromTracks = collectTrackCues(video);
-            const fromNet = pickSniffed();
-            best = [fromTracks, fromNet].filter(Boolean).sort((a, b) => b.length - a.length)[0] || null;
-            if (best && best.length >= 3) break;
+        const t0 = Date.now();
+        const baseDeadline = t0 + (isYouTube ? 7000 : 3200);
+        let result = null, small = null, hinted = false;
+        while (id === runId) {
+            let ambiguous = false, sawShown = false, pool = [];
+            if (isYouTube) {
+                const c = pickSniffed();
+                if (c && c.length >= 3) { result = c; break; }
+            } else {
+                const shown = readDisplayedCaptions(video);
+                sawShown = shown.length > 0;
+                const labels = readSelectedMenuLabels().concat(await askPagePlayers());
+                const r = chooseCandidate(sniffedCandidates().concat(collectTrackCandidates(video)),
+                    { shown, labels, uiLang: resolveUiLang(settings.uiLang), t: video.currentTime, sourceLang: tl.sourceLang });
+                ambiguous = r.reason === "ambiguous";
+                pool = r.pool;
+                if (r.pick) { if (r.pick.cues.length >= 3) { result = r.pick.cues; break; } small = r.pick.cues; }
+                // A caption IS on screen for 6 s but matches none of the tracks: use the first one the player loaded.
+                if (ambiguous && sawShown && Date.now() > t0 + 6000 && pool.length) { result = pool.slice().sort((a, b) => a.at - b.at)[0].cues; break; }
+            }
+            if (ambiguous) {
+                if (!hinted && Date.now() - t0 > 3500) { hinted = true; showToast(tr("tl_hint_cc")); }   // and keep waiting
+            } else if (Date.now() > baseDeadline) break;
             await sleepMs(400);
         }
         if (ytButton) restoreYouTubeCaptions(ytButton);
-        return best && best.length ? best : null;
+        if (result) return { cues: result };
+        return small ? { cues: small } : null;
     }
 
     // ---------- rendering through content.js ----------
@@ -188,8 +252,9 @@
             await loadTl();
             showToast(`${tr("tl_scanning")}  ${labelLine()}`);
             if (tl.hideOriginal) hideOriginalCaptions(true);   // before any CC switching, so nothing flashes
-            const cues = await findCues(video, id);
+            const found = await findCues(video, id);
             if (id !== runId) return;
+            const cues = found && found.cues;
             if (tl.hideOriginal) silenceNativeTracks(video);
             if (cues) await translateAll(cues, id);
             else startLive(video, id);
