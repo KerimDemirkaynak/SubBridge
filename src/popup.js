@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         el.style.whiteSpace = "pre-wrap"; el.style.display = "block";
     }
     function sendAndConfirm(msg) {
+        msg = { ...msg, requestId: crypto.randomUUID() };
         $("error-banner").style.display = "none";
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             const tab = tabs && tabs[0];
@@ -112,16 +113,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         broadcastMessage({ type: "TOGGLE_DUAL", dualEnabled: e.target.checked });
     });
     $("tl-list").addEventListener("click", async () => {
-        await saveTl(); tlStatus("…");
-        const r = await chrome.runtime.sendMessage({ type: "TL_LIST_MODELS" });
-        if (!r.ok) return tlStatus(r.error, "bad");
-        fillDatalist($("tl-models"), r.models);
-        tlStatus(i18nText("p_models_found", currentLang, { n: r.models.length }));
+        try {
+            await saveTl(); tlStatus("…");
+            const r = await chrome.runtime.sendMessage({ type: "TL_LIST_MODELS" });
+            if (!r?.ok) throw new Error(r?.error || "No response from the extension background");
+            fillDatalist($("tl-models"), r.models);
+            tlStatus(i18nText("p_models_found", currentLang, { n: r.models.length }));
+        } catch (e) { tlStatus(String(e.message || e), "bad"); }
     });
     $("tl-test").addEventListener("click", async () => {
-        await saveTl(); tlStatus("…");
-        const r = await chrome.runtime.sendMessage({ type: "TL_TEST" });
-        tlStatus(r.ok ? `OK · ${r.ms} ms\n${r.out.join("\n")}` : r.error, r.ok ? "ok" : "bad");
+        try {
+            await saveTl(); tlStatus("…");
+            const r = await chrome.runtime.sendMessage({ type: "TL_TEST" });
+            if (!r?.ok) throw new Error(r?.error || "No response from the extension background");
+            tlStatus(`OK · ${r.ms} ms\n${r.out.join("\n")}`, "ok");
+        } catch (e) { tlStatus(String(e.message || e), "bad"); }
     });
     $("tl-more").addEventListener("click", () => { chrome.runtime.openOptionsPage(); window.close(); });
     $("tl-start").addEventListener("click", () => sendAndConfirm({ type: "TL_TOGGLE" }));
@@ -150,10 +156,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ---------- Site tab ----------
     const hostOf = (tab) => { try { return new URL(tab.url).hostname.replace(/^www\./, ""); } catch (e) { return null; } };
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => { $("current-host").textContent = (tabs[0] && hostOf(tabs[0])) || "-"; });
+    let videoHost = null;
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        $("current-host").textContent = (tabs[0] && hostOf(tabs[0])) || "-";
+        if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: "GET_STATE" }).then(state => {
+            if (state?.hasVideo && state.hostname) { videoHost = state.hostname; $("current-host").textContent = videoHost; }
+        }).catch(() => {});
+    });
     $("save-site-profile").addEventListener("click", () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const host = tabs[0] && hostOf(tabs[0]); if (!host) return;
+            const host = videoHost || (tabs[0] && hostOf(tabs[0])); if (!host) return;
             chrome.storage.local.get(SITE_KEYS.concat("siteProfiles"), (d) => {
                 const profile = {}; SITE_KEYS.forEach(k => { if (d[k] !== undefined) profile[k] = d[k]; });
                 const siteProfiles = d.siteProfiles || {}; siteProfiles[host] = profile;
@@ -163,7 +175,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     $("reset-site-profile").addEventListener("click", () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const host = tabs[0] && hostOf(tabs[0]); if (!host) return;
+            const host = videoHost || (tabs[0] && hostOf(tabs[0])); if (!host) return;
             chrome.storage.local.get(["siteProfiles"], (d) => {
                 const siteProfiles = d.siteProfiles || {}; delete siteProfiles[host];
                 chrome.storage.local.set({ siteProfiles });

@@ -9,11 +9,14 @@
     window.__tlGrabber = true;
 
     const isYouTube = /(^|\.)youtube(-nocookie)?\.com$/i.test(location.hostname);
+    const isCrunchyroll = SBCrunchyroll.host(location.hostname);
+    let crPlayback = null, crSignature = "", crLoading = null;
 
     // Caption boxes that players draw themselves. Hidden while we show the translation...
     const HIDE_SELECTORS = [
         ".jw-text-track-cue", ".vjs-text-track-display", ".plyr__caption", ".art-subtitle-control", ".libass-captions",
-        ".shaka-text-container", ".ytp-caption-window-container", ".bmpui-ui-subtitle-overlay", ".player-timedtext", ".vp-captions"
+        ".shaka-text-container", ".ytp-caption-window-container", ".bmpui-ui-subtitle-overlay", ".player-timedtext", ".vp-captions",
+        "#vilosRoot [data-testid='subtitles']", ".vilos-subtitles", ".bmpui-subtitle-region-container", ".libassjs-canvas-parent", ".libassjs-canvas"
     ];
     // ...and read from in "live" mode, one element per caption box.
     const LIVE_SELECTORS = [
@@ -40,6 +43,7 @@
             const b = document.querySelector(".ytp-subtitles-button");
             return !!b && getComputedStyle(b).display !== "none" && b.getAttribute("aria-disabled") !== "true";
         }
+        if (isCrunchyroll && crPlayback?.tracks.length) return true;
         if (sniffed.size) return true;                                   // a subtitle file went over the network
         for (const t of Array.from(video.textTracks || [])) if (t.kind === "subtitles" || t.kind === "captions") return true;
         if (video.querySelector && video.querySelector("track")) return true;   // <track> elements, even if not loaded yet
@@ -52,10 +56,22 @@
     const autoUiAllowed = (video) => pageSupported() && hasSubtitleEvidence(video);
 
     // ---------- translator settings (mirrors the background defaults) ----------
-    let tl = { sourceLang: "auto", targetLang: "", batchSize: 40, ctxLines: 3, hideOriginal: true, autoStart: false, provider: "google" };
-    const loadTl = () => chrome.storage.local.get("tl").then(d => { Object.assign(tl, d.tl || {}); });
+    const TL_PUBLIC_DEFAULTS = { sourceLang: "auto", targetLang: "", batchSize: 40, concurrency: 2, ctxLines: 3, hideOriginal: true, autoStart: false, provider: "google" };
+    let tl = { ...TL_PUBLIC_DEFAULTS };
+    const loadTl = async () => {
+        const r = await chrome.runtime.sendMessage({ type: "TL_GET_SETTINGS" });
+        if (!r?.ok) throw new Error(r?.error || "Could not load translation settings");
+        tl = { ...TL_PUBLIC_DEFAULTS, ...r.settings };
+    };
     chrome.storage.onChanged.addListener((ch, area) => {
-        if (area === "local" && ch.tl) Object.assign(tl, ch.tl.newValue || {});
+        if (area !== "local" || !ch.tl) return;
+        const restart = running;
+        const wasAuto = tl.autoStart;
+        if (restart) stop();
+        loadTl().then(() => {
+            if (!wasAuto && tl.autoStart) autoAttemptKey = null;
+            if (restart && getActiveVideo()) start();
+        }).catch(e => showToast(String(e.message)));
     });
 
     // "Auto-detect -> Türkçe · Google": shown in the toast so a wrong language/engine is obvious.
@@ -74,17 +90,58 @@
 
     // ---------- source 1: subtitle files seen on the network ----------
     const sniffed = new Map();   // url -> {url, cues, at}
+    function acceptPlayback(payload) {
+        if (!isCrunchyroll || !payload || !Array.isArray(payload.tracks)) return;
+        const watchId = SBCrunchyroll.watchId(location.href);
+        if (watchId && payload.contentId && watchId !== payload.contentId) return;
+        const tracks = payload.tracks.filter(t => t && typeof t.lang === "string" && SBCrunchyroll.subtitleUrl(t.url)).slice(0, 100);
+        if (!tracks.length) return;
+        const signature = JSON.stringify([payload.contentId, payload.audioLocale, tracks]);
+        if (signature === crSignature) return;
+        const restart = running && (liveMode || (crPlayback && (crPlayback.contentId !== payload.contentId || crPlayback.audioLocale !== payload.audioLocale)));
+        crPlayback = { ...payload, tracks };
+        crSignature = signature;
+        crLoading = null;
+        if (restart) { stop(); start(); }
+    }
+    async function crunchyrollCues() {
+        if (!crPlayback) return null;
+        const selected = SBCrunchyroll.select(crPlayback.tracks, tl.sourceLang, crPlayback.audioLocale);
+        if (!selected.length) throw new Error("Crunchyroll has no subtitle track for the selected source language. Choose another language or Auto.");
+        const signature = JSON.stringify(selected.map(t => t.url));
+        if (!crLoading || crLoading.signature !== signature) {
+            const promise = Promise.all(selected.map(async track => {
+                const res = await chrome.runtime.sendMessage({ type: "TL_FETCH_SUBTITLE", url: track.url });
+                if (!res?.ok) throw new Error(res?.error || "Could not fetch Crunchyroll subtitles");
+                const cues = parseAnyFile(res.body, track.url);
+                if (!cues.length) throw new Error("Crunchyroll subtitle track has no readable cues");
+                return cues;
+            })).then(SBCrunchyroll.merge).catch(e => { if (crLoading?.signature === signature) crLoading = null; throw e; });
+            crLoading = { signature, promise };
+        }
+        return crLoading.promise;
+    }
     window.addEventListener("message", (e) => {
         const d = e.data;
+        if (isCrunchyroll && e.source === window && d?.__tlTracks === 1) {
+            acceptPlayback(d);
+            chrome.runtime.sendMessage({ type: "TL_CR_TRACKS", payload: d }).catch(() => {});
+            return;
+        }
         if (!d || d.__tlHook !== 1 || e.source !== window) return;
+        if (typeof d.body !== "string" || d.body.length > 5e6 || typeof d.url !== "string") return;
         try {
             const cues = parseAnyFile(d.body, d.url);
-            if (cues.length >= 3) {
-                sniffed.set(d.url, { url: d.url, cues, at: Date.now() });
+            if (cues.length) {
+                sniffed.set(d.url, { url: d.url, cues, at: Date.now(), pageKey: currentPageKey() });
                 if (sniffed.size > 30) sniffed.delete(sniffed.keys().next().value);
             }
         } catch (err) { /* ignore unparsable */ }
     });
+    if (isCrunchyroll) {
+        window.postMessage({ __tlAsk: "tracks" }, "*");
+        chrome.runtime.sendMessage({ type: "TL_CR_GET_TRACKS" }).then(r => acceptPlayback(r?.payload)).catch(() => {});
+    }
 
     function currentVideoId() {
         if (!isYouTube) return null;
@@ -96,7 +153,11 @@
     const pickSniffed = () => pickSniffedCues(Array.from(sniffed.values()), { videoId: currentVideoId(), sourceLang: tl.sourceLang });
 
     // ---------- source 2: native <track> cues ----------
-    const restoreModes = [];
+    const restoreModes = new Map();
+    function setTrackMode(track, mode) {
+        if (!restoreModes.has(track)) restoreModes.set(track, track.mode);
+        track.mode = mode;
+    }
     const trackCache = new WeakMap();   // converting 500+ cues (HTML-decoding each) is slow: redo it only when the cue list grows
     function trackCues(t) {
         const n = t.cues ? t.cues.length : 0;
@@ -111,7 +172,7 @@
         Array.from(video.textTracks || []).forEach((t, i) => {
             if (t.kind !== "subtitles" && t.kind !== "captions") return;
             const wasShowing = t.mode === "showing";
-            if (t.mode === "disabled") { restoreModes.push([t, "disabled"]); t.mode = "hidden"; }   // hidden still loads cues
+            if (t.mode === "disabled") setTrackMode(t, "hidden"); // hidden still loads cues
             const cues = trackCues(t);
             if (cues.length) out.push({ url: "track:" + (t.label || t.language || i), lang: (t.language || "").toLowerCase(), label: t.label || "", showing: wasShowing, at: 0, cues });
         });
@@ -163,7 +224,7 @@
     function silenceNativeTracks(video) {
         if (!tl.hideOriginal) return;
         for (const t of Array.from(video.textTracks || [])) {
-            if (t.mode === "showing") { restoreModes.push([t, "showing"]); t.mode = "hidden"; }
+            if (t.mode === "showing") setTrackMode(t, "hidden");
         }
     }
 
@@ -183,35 +244,36 @@
     // (the first caption line appears, the user picks one in the player, ...) or the user presses Stop.
     async function findCues(video, id) {
         let ytButton = null;
-        if (isYouTube && !pickSniffed()) ytButton = enableYouTubeCaptions();
+        if (isYouTube && !pickSniffed()) { ytButton = enableYouTubeCaptions(); ytEnabledByRun = ytButton; }
         const t0 = Date.now();
         const baseDeadline = t0 + (isYouTube ? 7000 : 3200);
-        let result = null, small = null, hinted = false;
+        let result = null, hinted = false;
         while (id === runId) {
-            let ambiguous = false, sawShown = false, pool = [];
-            if (isYouTube) {
+            let ambiguous = false;
+            if (isCrunchyroll && crPlayback) {
+                result = await crunchyrollCues();
+                break;
+            } else if (isYouTube) {
                 const c = pickSniffed();
-                if (c && c.length >= 3) { result = c; break; }
+                if (c?.length) { result = c; break; }
             } else {
                 const shown = readDisplayedCaptions(video);
-                sawShown = shown.length > 0;
                 const labels = readSelectedMenuLabels().concat(await askPagePlayers());
+                if (id !== runId) break;
                 const r = chooseCandidate(sniffedCandidates().concat(collectTrackCandidates(video)),
                     { shown, labels, uiLang: resolveUiLang(settings.uiLang), t: video.currentTime, sourceLang: tl.sourceLang });
                 ambiguous = r.reason === "ambiguous";
-                pool = r.pool;
-                if (r.pick) { if (r.pick.cues.length >= 3) { result = r.pick.cues; break; } small = r.pick.cues; }
-                // A caption IS on screen for 6 s but matches none of the tracks: use the first one the player loaded.
-                if (ambiguous && sawShown && Date.now() > t0 + 6000 && pool.length) { result = pool.slice().sort((a, b) => a.at - b.at)[0].cues; break; }
+                if (r.pick) { result = r.pick.cues; break; }
+                if (ambiguous && Date.now() > t0 + 7000) break;
             }
             if (ambiguous) {
                 if (!hinted && Date.now() - t0 > 3500) { hinted = true; showToast(tr("tl_hint_cc")); }   // and keep waiting
             } else if (Date.now() > baseDeadline) break;
             await sleepMs(400);
         }
-        if (ytButton) restoreYouTubeCaptions(ytButton);
+        if (ytButton && (result || id !== runId)) { restoreYouTubeCaptions(ytButton); if (ytEnabledByRun === ytButton) ytEnabledByRun = null; }
         if (result) return { cues: result };
-        return small ? { cues: small } : null;
+        return null;
     }
 
     // ---------- rendering through content.js ----------
@@ -239,7 +301,9 @@
     }
 
     // ---------- run state ----------
-    let running = false, runId = 0, liveObs = null, trackListeners = [], hintTimer = null;
+    let running = false, liveMode = false, runId = 0, liveObs = null, trackListeners = [], hintTimer = null, ytEnabledByRun = null;
+    let autoAttemptKey = null, autoNotBefore = 0;
+    const autoKey = () => currentPageKey() + "|" + (crPlayback?.contentId || "");
 
     async function start() {
         if (running) return;
@@ -247,9 +311,13 @@
         if (!video) return;
         running = true;
         const id = ++runId;
+        lastHref = currentPageKey();
+        lastPageUrl = lastHref;
+        autoAttemptKey = autoKey();
         setUi("busy");
         try {
             await loadTl();
+            if (id !== runId) return;
             showToast(`${tr("tl_scanning")}  ${labelLine()}`);
             if (tl.hideOriginal) hideOriginalCaptions(true);   // before any CC switching, so nothing flashes
             const found = await findCues(video, id);
@@ -266,11 +334,15 @@
     function stop() {
         runId++;
         running = false;
+        liveMode = false;
         clearTimeout(hintTimer);
         if (liveObs) { liveObs.disconnect(); liveObs = null; }
-        trackListeners.forEach(([t, fn]) => t.removeEventListener("cuechange", fn));
+        trackListeners.forEach(([t, event, fn]) => t.removeEventListener(event, fn));
         trackListeners = [];
-        restoreModes.splice(0).forEach(([t, m]) => { try { t.mode = m; } catch (e) {} });
+        restoreModes.forEach((m, t) => { try { t.mode = m; } catch (e) {} });
+        restoreModes.clear();
+        restoreYouTubeCaptions(ytEnabledByRun);
+        ytEnabledByRun = null;
         hideOriginalCaptions(false);
         clearOwnedTracks();
         setUi("idle");
@@ -296,19 +368,24 @@
         const at = Math.max(0, chunks.findIndex(([, e]) => cues[e - 1].end >= now));
         const order = chunks.slice(at).concat(chunks.slice(0, at).reverse());   // forward first, then back
 
-        let done = 0, failed = false;
-        await Promise.all(order.map(async ([a, b]) => {
+        let done = 0, failed = false, next = 0;
+        // Pull the next batch only after a worker finishes. Stop/navigation prevents unsent API calls.
+        const worker = async () => {
+          while (id === runId && !failed && next < order.length) {
+            const [a, b] = order[next++];
             const lines = cues.slice(a, b).map(c => c.text);
             const ctx = cues.slice(Math.max(0, a - tl.ctxLines), a).map(c => c.text);
             let res;
             try { res = await chrome.runtime.sendMessage({ type: "TL_TRANSLATE", lines, ctx }); }
             catch (e) { res = { ok: false, error: e.message }; }
             if (id !== runId || failed) return;
-            if (!res || !res.ok) { failed = true; fail(new Error(res && res.error || "no response"), id); return; }
+            if (!res?.ok || !Array.isArray(res.out) || res.out.length !== lines.length || !res.out.every(t => typeof t === "string")) { failed = true; fail(new Error(res?.error || "Invalid translation response"), id); return; }
             res.out.forEach((t, j) => { if (t) out[a + j].text = esc(t); });   // objects are shared with the renderer
             done++;
             setUi("busy", Math.round(done / chunks.length * 100));
-        }));
+          }
+        };
+        await Promise.all(Array.from({ length: Math.max(1, Math.min(8, tl.concurrency || 2)) }, worker));
         if (id !== runId || failed) return;
         setUi("done");
         showToast(`${tr("tl_done", { n: cues.length })}  ${labelLine()}`);
@@ -323,30 +400,57 @@
     }
 
     function startLive(video, id) {
+        liveMode = true;
         showToast(`${tr("tl_none")}  ${labelLine()}`);
         setUi("done");
         const tCues = [], oCues = [], history = [];
         setTrack("primary", tCues);
         setTrack("secondary", oCues);
-        let lastText = "", lastT = -99, seen = false;
+        let lastText = "", lastT = -99, seen = false, lastEntry = null;
+        let liveActive = 0, latestJob = null;
+        const limit = Math.max(1, Math.min(8, tl.concurrency || 2));
+        function pumpLive() {
+            if (id !== runId || !latestJob || liveActive >= limit) return;
+            const job = latestJob;
+            latestJob = null;
+            if (job.entry.end <= video.currentTime) return;
+            liveActive++;
+            chrome.runtime.sendMessage({ type: "TL_TRANSLATE", lines: [job.text], ctx: job.ctx }).then(res => {
+                if (id !== runId) return;
+                if (res?.ok && typeof res.out?.[0] === "string") job.entry.text = esc(res.out[0]);
+                else fail(new Error(res?.error || "Invalid translation response"), id);
+            }).catch(e => { if (id === runId) fail(e, id); }).finally(() => { liveActive--; pumpLive(); });
+        }
 
-        const handle = (raw) => {
+        const handle = (raw, start = video.currentTime, endTime = null) => {
+            if (id !== runId) return;
             const text = cleanText(raw);
-            const t = video.currentTime;
-            if (!text || (text === lastText && Math.abs(t - lastT) < 2)) return;
+            const t = start;
+            if (!text) {
+                if (lastEntry && t >= lastEntry.start) lastEntry.end = Math.min(lastEntry.end, t);
+                const original = oCues[oCues.length - 1];
+                if (original && t >= original.start) original.end = Math.min(original.end, t);
+                lastText = "";
+                return;
+            }
+            if (text === lastText && Math.abs(t - lastT) < 2) return;
+            if (lastEntry && t >= lastEntry.start) {
+                lastEntry.end = Math.min(lastEntry.end, t);
+                oCues[oCues.length - 1].end = lastEntry.end;
+            }
             seen = true;
             lastText = text; lastT = t;
-            const end = t + Math.max(2.5, Math.min(7, text.length * 0.07));
+            const end = endTime ?? t + Math.max(2.5, Math.min(7, text.length * 0.07));
             const entry = { start: t, end, text: esc(text) };
+            lastEntry = entry;
             tCues.push(entry);
             oCues.push({ start: t, end, text: esc(text) });
             const ctx = history.slice(-tl.ctxLines);
             history.push(text);
-            chrome.runtime.sendMessage({ type: "TL_TRANSLATE", lines: [text], ctx }).then(res => {
-                if (id !== runId) return;
-                if (res && res.ok && res.out[0]) entry.text = esc(res.out[0]);
-                else if (res && !res.ok) fail(new Error(res.error), id);
-            }).catch(() => {});
+            if (history.length > 10) history.shift();
+            if (tCues.length > 4000) { tCues.shift(); oCues.shift(); }
+            latestJob = { text, entry, ctx: tl.ctxLines ? ctx : [] };
+            pumpLive();
         };
 
         // A caption box changes many times while text is typed/rolled in: translate once it has settled for 350 ms.
@@ -358,7 +462,9 @@
                     if (lastSeen.get(el) === text) return;
                     lastSeen.set(el, text);
                     clearTimeout(timers.get(el));
-                    if (text) timers.set(el, setTimeout(() => { if (id === runId) handle(text); }, 350));
+                    const start = video.currentTime;
+                    if (text) timers.set(el, setTimeout(() => { if (id === runId) handle(text, start); }, 350));
+                    else handle("");
                 });
             }
         };
@@ -367,12 +473,26 @@
         scan();
 
         // native tracks that load lazily (e.g. streamed HLS/DASH) via cuechange
-        for (const tr0 of Array.from(video.textTracks || [])) {
-            if (tr0.kind !== "subtitles" && tr0.kind !== "captions") continue;
-            if (tr0.mode === "disabled") { restoreModes.push([tr0, "disabled"]); tr0.mode = "hidden"; }
-            const fn = () => Array.from(tr0.activeCues || []).forEach(c => handle(c.text));
+        function listenTrack(tr0) {
+            if (!tr0 || (tr0.kind !== "subtitles" && tr0.kind !== "captions")) return;
+            if (tl.sourceLang !== "auto") {
+                if (String(tr0.language || "").toLowerCase().split("-")[0] !== tl.sourceLang.toLowerCase().split("-")[0]) return;
+            } else if ((restoreModes.get(tr0) || tr0.mode) === "disabled") return;
+            if (tr0.mode === "disabled") setTrackMode(tr0, "hidden");
+            const fn = () => {
+                const cues = Array.from(tr0.activeCues || []);
+                handle(cues.map(c => c.text).join("\n"), cues.length ? Math.min(...cues.map(c => c.startTime)) : video.currentTime,
+                    cues.length ? Math.max(...cues.map(c => c.endTime)) : null);
+            };
             tr0.addEventListener("cuechange", fn);
-            trackListeners.push([tr0, fn]);
+            trackListeners.push([tr0, "cuechange", fn]);
+            fn();
+        }
+        for (const track of Array.from(video.textTracks || [])) listenTrack(track);
+        if (video.textTracks?.addEventListener) {
+            const add = e => listenTrack(e.track);
+            video.textTracks.addEventListener("addtrack", add);
+            trackListeners.push([video.textTracks, "addtrack", add]);
         }
 
         // nothing appeared: most likely the site's captions (CC) are switched off
@@ -453,9 +573,15 @@
     document.addEventListener("touchstart", onPointer, { passive: true, capture: true });
 
     // popup/other contexts can drive it too
+    const handledToggles = new Set();
     chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+        if (req.type === "CR_TRACKS") { acceptPlayback(req.payload); return; }
         if (req.type === "TL_TOGGLE" && getActiveVideo() && (!isYouTube || pageSupported())) {
-            if (running) stop(); else start();
+            if (!req.requestId || !handledToggles.has(req.requestId)) {
+                if (req.requestId) handledToggles.add(req.requestId);
+                while (handledToggles.size > 30) handledToggles.delete(handledToggles.values().next().value);
+                if (running) stop(); else start();
+            }
             sendResponse({ ok: true, running });
         }
     });
@@ -468,21 +594,25 @@
     });
 
     // SPA navigation to another video: content.js clears the tracks, so end the run too
-    let lastHref = location.href;
+    let lastHref = currentPageKey();
     setInterval(() => {
-        if (location.href === lastHref) return;
-        lastHref = location.href;
-        if (!isYouTube) sniffed.clear();   // YouTube files are matched by video id instead
-        if (running) { stop(); if (tl.autoStart) setTimeout(start, 1500); }
+        const href = currentPageKey();
+        if (href !== lastHref) {
+            lastHref = href;
+            autoNotBefore = Date.now() + 1000;
+            if (!isYouTube) for (const [url, entry] of sniffed) if (entry.pageKey !== href) sniffed.delete(url);
+            if (isCrunchyroll && crPlayback?.contentId !== SBCrunchyroll.watchId(location.href)) {
+                crPlayback = null; crSignature = ""; crLoading = null;
+                window.postMessage({ __tlAsk: "tracks" }, "*");
+            }
+            if (running) stop();
+        }
+        // Keep watching late-loaded players. A manual Stop suppresses auto-start until the video changes.
+        if (tl.autoStart && !running && autoAttemptKey !== autoKey() && Date.now() >= autoNotBefore) {
+            const v = getActiveVideo();
+            if (v && v.getBoundingClientRect().width >= 240 && autoUiAllowed(v)) start();
+        }
     }, 1000);
 
-    // auto-start when the user opted in
-    loadTl().then(() => {
-        if (!tl.autoStart) return;
-        const t = setInterval(() => {
-            const v = getActiveVideo();
-            if (v && v.getBoundingClientRect().width >= 240 && autoUiAllowed(v)) { clearInterval(t); start(); }
-        }, 1500);
-        setTimeout(() => clearInterval(t), 60000);
-    });
+    loadTl().catch(() => {});
 })();

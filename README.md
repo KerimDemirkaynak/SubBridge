@@ -61,3 +61,33 @@ Please review the privacy policy of your chosen provider before using it.
 ## License
 
 SubBridge is licensed under the [MIT License](LICENSE).
+
+## Crunchyroll
+
+1. Build/install SubBridge, then reload the Crunchyroll watch page so the page hook is present before the player starts.
+2. Choose a translation provider and target language. Set **From** to the subtitle language you want to translate, or choose **Auto**.
+3. Start translation from the extension popup, the floating video button, or **Alt+R**. **Alt+D** shows/hides the original line; **Alt+R** stops translation and restores the player's captions.
+
+SubBridge reads the subtitle and closed-caption URLs in Crunchyroll's playback metadata. For dubs, Auto prefers closed captions in the audio language; otherwise it prefers English when available, then the first available locale. Matching subtitle/sign and closed-caption files are combined. Selecting a source language that has no subtitle track reports an error instead of translating a different language.
+
+The adapter supports ASS/SSA, WebVTT and SRT text tracks, including player frames on Crunchyroll subdomains. It does not transcribe audio or remove text burned into the video. Translated ASS text uses SubBridge's subtitle styles; complex ASS typesetting, vector drawings and animations are not reproduced. Other DRM sites are not implied to be supported.
+
+[SubTranslate](https://github.com/YabQ/SubTranslate) was consulted to confirm the playback response shape. The adapter is independently implemented and does not include SubTranslate source code; SubBridge retains its MIT license.
+
+## Development and installation
+
+Requires Node.js 20+ and Python 3. Node dependencies are used only for tests and are not shipped in the extension.
+
+```sh
+npm ci --ignore-scripts
+npm test
+python3 build.py
+npm run check
+```
+
+The build produces:
+
+- `dist/chrome/` and `dist/subbridge-chrome.zip`: load the unpacked directory from `chrome://extensions` with Developer mode enabled.
+- `dist/firefox/` and `dist/subbridge-firefox.xpi`: for local testing, load `dist/firefox/manifest.json` through `about:debugging` → This Firefox → Load Temporary Add-on. Normal Firefox installation requires an AMO-signed package. Minimum Firefox version: 142.
+
+CI runs the regression tests and validates both manifests before uploading the two packages as the `subbridge-extensions` artifact. See [CHANGELOG.md](CHANGELOG.md) for fixes and test limitations. Authenticated Crunchyroll playback still needs an end-to-end check with a permitted account; automated tests use local fixtures and mocked APIs.

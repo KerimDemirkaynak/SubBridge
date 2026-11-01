@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SubBridge",
-  "version": "3.0.0",
-  "description": "Translate the subtitles web videos already have (Google, Gemini, OpenRouter, NVIDIA) and play .ass/.srt subtitles on any video.",
+  "version": "3.1.0",
+  "description": "Translate existing video subtitles on YouTube, Crunchyroll and other supported players with Google, DeepL or AI providers.",
   "permissions": [
     "storage",
     "unlimitedStorage"
@@ -39,6 +39,7 @@
         "content.js",
         "scripts.js",
         "parsers.js",
+        "crunchyroll.js",
         "grabber.js"
       ],
       "run_at": "document_start"
@@ -49,6 +50,7 @@
       ],
       "all_frames": true,
       "js": [
+        "crunchyroll.js",
         "hook-main.js"
       ],
       "run_at": "document_start",

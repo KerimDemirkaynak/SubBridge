@@ -6,6 +6,43 @@
     window.__tlHook = true;
     const URL_RX = /\.(vtt|srt|ass|ssa)(\?|#|$)|[?&](format|fmt)=(vtt|srt|json3|srv\d)|\/(subtitles?|captions?|tracks?)\/|timedtext/i;
     const BODY_RX = /-->|\[Script Info\]|"events"\s*:|<transcript|<timedtext/;
+    const isCR = SBCrunchyroll.host(location.hostname);
+    let playback = null;
+    const sendPlayback = () => {
+        if (playback) window.postMessage({ __tlTracks: 1, ...playback }, "*");
+    };
+    function playbackRequest(raw) {
+        if (!isCR) return false;
+        try {
+            const u = new URL(raw, location.href);
+            return SBCrunchyroll.apiHost(u.hostname) && /\/play(?:\?|$)|\/playback\/v\d+\//i.test(u.pathname);
+        } catch (_) { return false; }
+    }
+    function scanPlayback(url, body) {
+        if (typeof body !== "string" || body.length > 3e6) return;
+        try {
+            const data = SBCrunchyroll.extract(JSON.parse(body), new URL(url, location.href).href);
+            if (!data.tracks.length) return;
+            playback = { ...data, pageUrl: location.href };
+            sendPlayback();
+        } catch (_) {}
+    }
+    async function readSmall(response, max) {
+        if (!response.ok || Number(response.headers.get("content-length")) > max) return "";
+        const reader = response.body?.getReader();
+        if (!reader) return (await response.text()).slice(0, max);
+        let size = 0, text = "";
+        const decoder = new TextDecoder();
+        try {
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) return text + decoder.decode();
+                size += value.byteLength;
+                if (size > max) { await reader.cancel(); return ""; }
+                text += decoder.decode(value, { stream: true });
+            }
+        } finally { reader.releaseLock(); }
+    }
     const post = (url, body) => {
         try {
             if (typeof body === "string" && body.length < 5e6 && BODY_RX.test(body)) {
@@ -19,8 +56,11 @@
         const p = origFetch.apply(this, args);
         try {
             const u = (args[0] && args[0].url) || args[0];
-            if (URL_RX.test(String(u))) {
-                p.then(r => r.clone().text().then(b => post(u, b)).catch(() => {})).catch(() => {});
+            const cr = playbackRequest(String(u));
+            if (URL_RX.test(String(u)) || cr) {
+                p.then(r => readSmall(r.clone(), cr ? 3e6 : 5e6).then(b => {
+                    if (cr) scanPlayback(u, b); else post(u, b);
+                })).catch(() => {});
             }
         } catch (e) {}
         return p;
@@ -32,13 +72,19 @@
         return origOpen.apply(this, arguments);
     };
     const origSend = XMLHttpRequest.prototype.send;
+    const onLoad = function () {
+        try {
+            const cr = playbackRequest(String(this.__tlUrl));
+            let body = "";
+            if (this.responseType === "" || this.responseType === "text") body = this.responseText;
+            else if (cr && this.responseType === "json") body = JSON.stringify(this.response);
+            if (cr) scanPlayback(this.__tlUrl, body); else post(this.__tlUrl, body);
+        } catch (_) {}
+    };
     XMLHttpRequest.prototype.send = function () {
         try {
-            if (URL_RX.test(String(this.__tlUrl))) {
-                this.addEventListener("load", () => {
-                    if (this.responseType === "" || this.responseType === "text") post(this.__tlUrl, this.responseText);
-                });
-            }
+            this.removeEventListener("load", onLoad);
+            if (URL_RX.test(String(this.__tlUrl)) || playbackRequest(String(this.__tlUrl))) this.addEventListener("load", onLoad);
         } catch (e) {}
         return origSend.apply(this, arguments);
     };
@@ -72,7 +118,9 @@
     }
     window.addEventListener("message", (e) => {
         const d = e.data;
-        if (e.source !== window || !d || d.__tlAsk !== "selected") return;
+        if (e.source !== window || !d) return;
+        if (d.__tlAsk === "tracks") { sendPlayback(); return; }
+        if (d.__tlAsk !== "selected") return;
         window.postMessage({ __tlSelected: 1, id: d.id, labels: selectedFromPlayers() }, "*");
     });
 })();

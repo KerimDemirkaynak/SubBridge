@@ -4,24 +4,26 @@
 // Formats: WebVTT / SRT, ASS/SSA (via content.js parseASS), YouTube "json3" and its XML formats.
 // =========================================================================
 function cleanText(s) {
-    s = String(s || "").replace(/<[^>]*>/g, "").replace(/\{\\[^}]*\}/g, "").replace(/\\N/g, "\n");
+    s = String(s || "").replace(/<br\s*\/?\s*>/gi, "\n").replace(/<[^>]*>/g, "").replace(/\{\\[^}]*\}/g, "").replace(/\\N/g, "\n");
     const d = new DOMParser().parseFromString(s, "text/html");
     return (d.body.textContent || "").replace(/[ \t]+/g, " ").trim();
 }
 
 function parseTimed(text) {   // WebVTT and SRT
     const cues = [];
-    const toS = (h, m, s, ms) => (+h || 0) * 3600 + (+m) * 60 + (+s) + (+ms.padEnd(3, "0")) / 1000;
+    const toS = (h, m, s, ms) => (+h || 0) * 3600 + (+m) * 60 + (+s) + Number("0." + ms);
     const rx = /(?:(\d+):)?(\d+):(\d+)[.,](\d+)\s*-->\s*(?:(\d+):)?(\d+):(\d+)[.,](\d+)/;
     text.replace(/\r/g, "").split(/\n{2,}/).forEach(block => {
         const lines = block.split("\n");
+        if (/^\s*(NOTE|STYLE|REGION)\b/.test(lines[0])) return;
         const i = lines.findIndex(l => rx.test(l));
         if (i < 0) return;
         const m = lines[i].match(rx);
         const t = cleanText(lines.slice(i + 1).join("\n"));
-        if (t) cues.push({ start: toS(m[1], m[2], m[3], m[4]), end: toS(m[5], m[6], m[7], m[8]), text: t });
+        const start = toS(m[1], m[2], m[3], m[4]), end = toS(m[5], m[6], m[7], m[8]);
+        if (t && end > start) cues.push({ start, end, text: t });
     });
-    return cues;
+    return cues.sort((a, b) => a.start - b.start || a.end - b.end);
 }
 
 // YouTube's own caption format (what the player requests from /api/timedtext).
@@ -29,12 +31,12 @@ function parseJson3(body, url) {
     let j;
     try { j = JSON.parse(body); } catch (e) { return []; }
     const cues = [];
-    for (const ev of (j && j.events) || []) {
-        if (!ev.segs) continue;
-        const text = ev.segs.map(s => s.utf8 || "").join("").replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim();
+    for (const ev of (Array.isArray(j?.events) ? j.events : [])) {
+        if (!ev || !Array.isArray(ev.segs)) continue;
+        const text = ev.segs.map(s => typeof s?.utf8 === "string" ? s.utf8 : "").join("").replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim();
         if (!text) continue;
-        const start = (ev.tStartMs || 0) / 1000;
-        cues.push({ start, end: start + (ev.dDurationMs || 2000) / 1000, text });
+        const start = Number(ev.tStartMs || 0) / 1000, duration = Number(ev.dDurationMs ?? 2000) / 1000;
+        if (Number.isFinite(start) && Number.isFinite(duration) && start >= 0 && duration > 0) cues.push({ start, end: start + duration, text });
     }
     cues.sort((a, b) => a.start - b.start);
     // Auto-generated captions roll: every event lasts until long after the next one starts. Cut each at the next start.
@@ -58,12 +60,12 @@ function parseXmlTimedText(body) {
     doc.querySelectorAll("text[start]").forEach(n => {
         const t = cleanText(n.textContent);
         const start = parseFloat(n.getAttribute("start")), dur = parseFloat(n.getAttribute("dur") || "2");
-        if (t && isFinite(start)) cues.push({ start, end: start + dur, text: t });
+        if (t && isFinite(start) && isFinite(dur) && start >= 0 && dur > 0) cues.push({ start, end: start + dur, text: t });
     });
     doc.querySelectorAll("p[t]").forEach(n => {
         const t = cleanText(n.textContent);
         const start = parseFloat(n.getAttribute("t")) / 1000, dur = parseFloat(n.getAttribute("d") || "2000") / 1000;
-        if (t && isFinite(start)) cues.push({ start, end: start + dur, text: t });
+        if (t && isFinite(start) && isFinite(dur) && start >= 0 && dur > 0) cues.push({ start, end: start + dur, text: t });
     });
     return cues.sort((a, b) => a.start - b.start);
 }
@@ -72,7 +74,7 @@ function parseAnyFile(body, url) {
     const b = String(body).trimStart();
     if (b[0] === "{" && /"events"\s*:/.test(b)) return parseJson3(b, url);
     if (/<(transcript|timedtext)[\s>]/i.test(b.slice(0, 400))) return parseXmlTimedText(b);
-    if (/\[Script Info\]/i.test(b) && typeof parseASS === "function") {
+    if (/^\s*\[(Script Info|Events|V4\+? Styles)\]/im.test(b) && typeof parseASS === "function") {
         return parseASS(b).subs.map(c => ({ start: c.start, end: c.end, text: cleanText(c.text) })).filter(c => c.text);
     }
     return parseTimed(b);
@@ -109,13 +111,13 @@ function dedupeCandidates(cands) {
     const out = new Map();
     for (const c of cands) {
         if (!c.cues.length) continue;
-        const sig = `${c.cues.length}|${normCaption(c.cues[0].text)}|${normCaption(c.cues[c.cues.length >> 1].text)}`;
+        const sig = JSON.stringify(c.cues.map(cue => [cue.start, cue.end, normCaption(cue.text)]));
         const prev = out.get(sig);
         if (!prev) { out.set(sig, Object.assign({}, c)); continue; }
         prev.showing = prev.showing || c.showing;
         prev.lang = prev.lang || c.lang;
         prev.label = prev.label || c.label;
-        prev.at = Math.min(prev.at, c.at);
+        prev.at = Math.max(prev.at || 0, c.at || 0);
     }
     return Array.from(out.values());
 }
@@ -144,7 +146,11 @@ const LANG_TOKENS = {
 // 1 = only its writing system fits (Chinese and Japanese share Han, so that is weak), 0 = no sign.
 function candidateLangStrength(c, want) {
     const base = String(want).toLowerCase().split("-")[0];
-    if (c.lang && String(c.lang).toLowerCase().startsWith(base)) return 2;
+    // Explicit metadata is stronger than a token in a signed URL or a shared writing system.
+    if (c.lang) {
+        const code = String(c.lang).toLowerCase().split(/[-_]/)[0];
+        return code === base || (LANG_TOKENS[base] || []).includes(code) ? 2 : 0;
+    }
     const hay = `${c.url || ""} ${c.label || ""}`.toLowerCase();
     if ((LANG_TOKENS[base] || [base]).some(n => new RegExp("(^|[^a-z])" + n + "([^a-z]|$)").test(hay))) return 2;
     if (typeof scriptShare === "function" && typeof LANG_SCRIPT !== "undefined" && LANG_SCRIPT[want] && LANG_SCRIPT[want] !== "Latin") {
@@ -210,6 +216,11 @@ function candidatesForLabel(pool, label, uiLang) {
 function chooseCandidate(cands, ctx) {
     let pool = dedupeCandidates(cands);
     if (!pool.length) return { pick: null, reason: "none", pool };
+    if (ctx.sourceLang && ctx.sourceLang !== "auto") {
+        const matching = filterByLang(pool, ctx.sourceLang);
+        if (!matching.length && pool.some(c => c.lang)) return { pick: null, reason: "none", pool: [] };
+        if (matching.length) pool = matching;
+    }
     if (pool.length === 1) return { pick: pool[0], reason: "single", pool };
 
     const showing = pool.filter(c => c.showing);                       // a native track the player has switched on

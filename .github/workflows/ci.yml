@@ -1,0 +1,31 @@
+name: Test and build extensions
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: python build.py
+      - run: npm run check
+      - uses: actions/upload-artifact@v7
+        with:
+          name: subbridge-extensions
+          path: |
+            dist/subbridge-chrome.zip
+            dist/subbridge-firefox.xpi
+          if-no-files-found: error

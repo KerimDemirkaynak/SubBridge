@@ -66,12 +66,14 @@ async function ensureHost(url) {
   } catch (e) { return false; }
 }
 async function guardedCall(type) {
-  collect(); await save();
-  const cfg = S[S.provider];
-  if (cfg && cfg.baseUrl && !(await ensureHost(cfg.baseUrl))) {
-    status("Host permission was not granted for " + cfg.baseUrl, "bad"); return null;
-  }
-  return chrome.runtime.sendMessage({ type });
+  try {
+    collect(); await save();
+    const cfg = S[S.provider];
+    if (cfg && cfg.baseUrl && !(await ensureHost(cfg.baseUrl))) throw new Error("Host permission was not granted for " + cfg.baseUrl);
+    const result = await chrome.runtime.sendMessage({ type });
+    if (!result) throw new Error("The extension background did not respond. Reload the extension and try again.");
+    return result;
+  } catch (e) { status(String(e.message || e), "bad"); return null; }
 }
 
 (async () => {

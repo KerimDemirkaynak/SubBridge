@@ -54,6 +54,7 @@ function tr(key, vars) { return i18nText(key, settings.uiLang, vars); }
 function loadSettings(callback) {
     chrome.storage.local.get(Object.keys(DEFAULTS), (data) => {
         settings = Object.assign({}, DEFAULTS, data);
+        settings._userTouchedStyle = Object.keys(data).some(k => ["subSize", "subColor", "subFont", "edgeBottom"].includes(k));
         applySitePreset();
         if (callback) callback();
     });
@@ -61,7 +62,7 @@ function loadSettings(callback) {
 
 function applySitePreset() {
     const host = location.hostname.replace(/^www\./, "");
-    const presetKey = Object.keys(SITE_PRESETS).find(k => host.endsWith(k));
+    const presetKey = Object.keys(SITE_PRESETS).find(k => host === k || host.endsWith("." + k));
     const userOverride = settings.siteProfiles && settings.siteProfiles[host];
     if (userOverride) {
         Object.assign(settings, userOverride);
@@ -72,32 +73,8 @@ function applySitePreset() {
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
-    let styleTouched = false;
-    let removedAny = false;
-    Object.keys(changes).forEach(key => {
-        if (key in DEFAULTS) {
-            const nv = changes[key].newValue;
-            if (nv === undefined) {
-                // Key was deleted (e.g. "Reset all settings") -> back to its default
-                settings[key] = JSON.parse(JSON.stringify(DEFAULTS[key]));
-                removedAny = true;
-            } else {
-                settings[key] = nv;
-            }
-            if (["subSize","subOpacity","subColor","borderColor","borderWidth",
-                 "shadowLevel","subFont","edgeBottom","aspectMode","positionTop",
-                 "subColor2","subSize2","subOpacity2","subFont2","borderColor2",
-                 "borderWidth2","shadowLevel2","dualGap"].includes(key)) {
-                styleTouched = true;
-            }
-        }
-    });
-    if (removedAny) {
-        settings._userTouchedStyle = false;
-        applySitePreset();
-        styleTouched = true;
-    }
-    if (styleTouched) { updateSubStyle(); updateSubStyle2(); }
+    // Recompose from global settings each time, so deleting a site profile also removes its overrides.
+    if (Object.keys(changes).some(key => key in DEFAULTS)) loadSettings(() => { updateSubStyle(); updateSubStyle2(); });
 });
 
 loadSettings();
@@ -134,8 +111,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             chrome.storage.local.set({ uiLang: settings.uiLang });
             break;
         case "GET_STATE":
+            if (!getActiveVideo()) return; // let the video-owning iframe answer the popup
             sendResponse({
-                hasVideo: !!document.querySelector("video"),
+                hasVideo: true,
                 primaryLoaded: parsedSubtitles.length > 0,
                 secondaryLoaded: parsedSubtitles2.length > 0,
                 hostname: location.hostname.replace(/^www\./, "")
@@ -227,6 +205,16 @@ function showToast(msg) {
 
 // Convert supported ASS override tags to HTML, strip unsupported ones
 function convertASSFormattingToHTML(text) {
+    // ASS vector drawings are shapes, not subtitle text. Drawing mode can end within a line.
+    let drawing = false;
+    text = text.split(/(\{[^}]*\})/g).map(part => {
+        if (part.startsWith("{")) {
+            for (const m of part.matchAll(/\\p(\d+)\b/g)) drawing = +m[1] > 0;
+            if (/\\r(?:[^\\}]*)/.test(part)) drawing = false;
+            return part;
+        }
+        return drawing ? "" : part.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }).join("");
     let result = text.replace(/\{([^}]*)\}/g, (_match, content) => {
         let html = "";
 
@@ -261,8 +249,8 @@ function convertASSFormattingToHTML(text) {
         return html;
     });
 
-    // Convert \N (hard) and \n (soft) line breaks to newlines
-    result = result.replace(/\\[Nn]/g, "\n");
+    // Hard line breaks stay on separate lines; soft breaks and hard spaces become spaces.
+    result = result.replace(/\\N/g, "\n").replace(/\\[nh]/g, " ");
 
     return result.trim();
 }
@@ -272,12 +260,13 @@ function parseASS(assText) {
     let subs = [];
     let resX = 384, resY = 288; // ASS spec defaults
     let foundResX = false, foundResY = false;
-    const styles = {};           // styleName -> { alignment }
+    const styles = Object.create(null); // style names come from an untrusted subtitle
     let styleFormatFields = [];  // column order from Style Format line
+    let eventFields = ["layer", "start", "end", "style", "name", "marginl", "marginr", "marginv", "effect", "text"];
     let currentSection = "";
     const tToS = (t) => {
         const p = t.trim().split(":");
-        return p.length < 3 ? 0 : (parseFloat(p[0]) * 3600) + (parseFloat(p[1]) * 60) + parseFloat(p[2]);
+        return p.length !== 3 ? NaN : (Number(p[0]) * 3600) + (Number(p[1]) * 60) + Number(p[2]);
     };
     // Map legacy SSA \a values to ASS \an values
     const ssaToAn = { 1:1, 2:2, 3:3, 5:7, 6:8, 7:9, 9:4, 10:5, 11:6 };
@@ -299,11 +288,11 @@ function parseASS(assText) {
 
         // [V4+ Styles] or [V4 Styles] - parse Format and Style lines
         if (currentSection.includes("styles")) {
-            if (trimmed.startsWith("Format:")) {
+            if (/^Format:/i.test(trimmed)) {
                 styleFormatFields = trimmed.substring(7).split(",").map(s => s.trim().toLowerCase());
                 return;
             }
-            if (trimmed.startsWith("Style:")) {
+            if (/^Style:/i.test(trimmed)) {
                 const values = trimmed.substring(6).split(",").map(s => s.trim());
                 const nameIdx = styleFormatFields.indexOf("name");
                 const alignIdx = styleFormatFields.indexOf("alignment");
@@ -326,13 +315,20 @@ function parseASS(assText) {
         }
 
         // Dialogue lines
-        if (trimmed.startsWith("Dialogue:")) {
-            const parts = trimmed.split(",");
-            if (parts.length >= 10) {
-                let text = parts.slice(9).join(",");
+        if (currentSection === "[events]" && /^Format:/i.test(trimmed)) {
+            eventFields = trimmed.slice(7).split(",").map(s => s.trim().toLowerCase());
+        }
+        if (currentSection === "[events]" && /^Dialogue:/i.test(trimmed)) {
+            const parts = trimmed.slice(trimmed.indexOf(":") + 1).split(",");
+            const textIdx = eventFields.indexOf("text");
+            const field = key => parts[eventFields.indexOf(key)] || "";
+            if (textIdx === eventFields.length - 1 && parts.length >= eventFields.length) {
+                let text = parts.slice(textIdx).join(",");
+                const start = tToS(field("start")), end = tToS(field("end"));
+                if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || end <= start) return;
                 // Extract \pos(x,y) before stripping override tags
                 let pos = null;
-                const posMatch = text.match(/\\pos\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*\)/);
+                const posMatch = text.match(/\\pos\s*\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)/);
                 if (posMatch) {
                     pos = { x: parseFloat(posMatch[1]), y: parseFloat(posMatch[2]) };
                 }
@@ -347,7 +343,7 @@ function parseASS(assText) {
                         alignment = ssaToAn[parseInt(aMatch[1], 10)] || 2;
                     }
                 }
-                const styleName = parts[3] ? parts[3].trim() : "";
+                const styleName = field("style").trim();
                 // Fall back to style's alignment, then default (2 = bottom-center)
                 if (alignment === null) {
                     alignment = (styles[styleName] && styles[styleName].alignment) || 2;
@@ -361,7 +357,7 @@ function parseASS(assText) {
 
                 // Convert supported ASS formatting to HTML, strip unsupported tags
                 text = convertASSFormattingToHTML(text);
-                subs.push({ start: tToS(parts[1]), end: tToS(parts[2]), text, pos, alignment, fontSize });
+                if (text) subs.push({ start, end, text, pos, alignment, fontSize });
             }
         }
     });
@@ -371,6 +367,7 @@ function parseASS(assText) {
     // Guard against 0 / nonsense values so we never divide by zero later
     if (!(resX > 0)) resX = 384;
     if (!(resY > 0)) resY = 288;
+    subs.sort((a, b) => a.start - b.start || a.end - b.end);
     return { subs, resX, resY };
 }
 
@@ -422,13 +419,19 @@ function getActiveVideo() {
     return best;
 }
 
-let lastPageUrl = location.href;
+function currentPageKey() {
+    const u = new URL(location.href);
+    if (/(^|\.)youtube(-nocookie)?\.com$/i.test(u.hostname)) return u.origin + u.pathname + "?v=" + (u.searchParams.get("v") || "");
+    if (/(^|\.)crunchyroll\.com$/i.test(u.hostname)) return u.origin + u.pathname;
+    return u.href;
+}
+let lastPageUrl = currentPageKey();
 
 function watchForVideoChanges() {
     if (videoWatchTimer) clearInterval(videoWatchTimer);
     videoWatchTimer = setInterval(() => {
         const v = getActiveVideo();
-        const currentUrl = location.href;
+        const currentUrl = currentPageKey();
 
         // SPA Navigation Fix: If URL changes (e.g. clicked a new YouTube video), clear subtitles
         // if the user doesn't want them auto-restored. This is much safer than checking video.src.
@@ -449,6 +452,8 @@ function watchForVideoChanges() {
             ensureSyncLoop(v);
         } else if (!v && activeVideo) {
             activeVideo = null;
+            if (customSubContainer) customSubContainer.style.display = "none";
+            if (customSubContainer2) customSubContainer2.style.display = "none";
         }
     }, 800);
 }
@@ -456,6 +461,7 @@ watchForVideoChanges();
 
 
 function initContainer(videoElement) {
+    activeVideo = videoElement;
     if (customSubContainer) customSubContainer.remove();
     customSubContainer = document.createElement("div");
     ensureContainerParent(customSubContainer);
@@ -464,6 +470,7 @@ function initContainer(videoElement) {
 }
 
 function initContainer2(videoElement) {
+    activeVideo = videoElement;
     if (customSubContainer2) customSubContainer2.remove();
     customSubContainer2 = document.createElement("div");
     ensureContainerParent(customSubContainer2);
@@ -497,10 +504,16 @@ function buildSmoothShadow(color, w, strong) {
     return parts.join(", ");
 }
 
+const shadowCache = new Map();
 function buildTextShadow(borderColor, borderWidth, shadowLevel) {
     if (shadowLevel === "none") return "none";
     const w = Math.max(1, borderWidth);
-    return buildSmoothShadow(borderColor, w, shadowLevel === "strong");
+    const key = `${borderColor}|${w}|${shadowLevel}`;
+    if (!shadowCache.has(key)) {
+        if (shadowCache.size >= 32) shadowCache.delete(shadowCache.keys().next().value);
+        shadowCache.set(key, buildSmoothShadow(borderColor, w, shadowLevel === "strong"));
+    }
+    return shadowCache.get(key);
 }
 
 // ---- Safe subtitle renderer (handles <i>, <b>, <u>, <s>, <font color>, \n) --------
@@ -563,7 +576,9 @@ if (isMobile) {
     const fontLink = document.createElement("link");
     fontLink.rel = "stylesheet";
     fontLink.href = "https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Open+Sans:wght@700&family=Noto+Sans:wght@700&display=swap";
-    document.head.appendChild(fontLink);
+    const appendFont = () => { if (document.head) document.head.appendChild(fontLink); };
+    if (document.head) appendFont();
+    else document.addEventListener("DOMContentLoaded", appendFont, { once: true });
 }
 
 // Returns the rectangle the video PICTURE actually occupies on screen.
@@ -661,7 +676,7 @@ function updateSubStyle2() {
     // Font size based on the video picture width (not the viewport)
     const fontSize2 = `calc(clamp(14px, ${rect.width * 0.032}px, 58px) * ${settings.subSize2 / 100})`;
         
-    const centerX = rect.left + rect.width / 2;
+    const centerX = rect.left + rect.width / 2 + settings.posOffsetX;
 
     // Use the REAL rendered height of the primary container when available.
     // This correctly handles multi-line primary subtitles.
@@ -718,16 +733,24 @@ function enableDragHandlers(container, target) {
         baseX = settings.posOffsetX; baseY = settings.posOffsetY;
         e.preventDefault();
     });
-    window.addEventListener("mousemove", (e) => {
+    const move = (e) => {
         if (!dragging) return;
         settings.posOffsetX = baseX + (e.clientX - startX);
         settings.posOffsetY = -(e.clientY - startY) + baseY;
         updateSubStyle();
-    });
-    window.addEventListener("mouseup", () => {
+        updateSubStyle2();
+    };
+    const up = () => {
         if (!dragging) return;
         dragging = false;
         chrome.storage.local.set({ posOffsetX: settings.posOffsetX, posOffsetY: settings.posOffsetY });
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("mouseup", up);
+    };
+    container.addEventListener("mousedown", () => {
+        if (!dragging) return;
+        window.addEventListener("mousemove", move);
+        window.addEventListener("mouseup", up);
     });
 }
 
@@ -736,7 +759,7 @@ function activeText(cues, t) {
     let out = "", n = 0;
     for (let i = 0; i < cues.length; i++) {
         const c = cues[i];
-        if (t >= c.start && t <= c.end) out += (n++ ? "\n" : "") + c.text;
+        if (t >= c.start && t < c.end) out += (n++ ? "\n" : "") + c.text;
     }
     return out;
 }
@@ -763,7 +786,11 @@ function ensureSyncLoop(videoElement) {
     function checkTime() {
         if (!activeVideo || !document.body.contains(activeVideo)) {
             const v = getActiveVideo();
-            if (v) { activeVideo = v; activeVideoSrc = v.currentSrc; }
+            activeVideo = v;
+            if (!v) {
+                if (customSubContainer) customSubContainer.style.display = "none";
+                if (customSubContainer2) customSubContainer2.style.display = "none";
+            }
         }
         if (activeVideo) {
             ensureContainerParent(customSubContainer);

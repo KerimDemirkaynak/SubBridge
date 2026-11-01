@@ -95,28 +95,15 @@ async function tlGetSettings() {
     s.deepl = Object.assign({}, TL_DEFAULTS.deepl, saved.deepl || {});
     for (const id of LLM_IDS) s[id] = Object.assign({}, TL_DEFAULTS[id], saved[id] || {});
 
-    // The Gemini default changed from gemini-2.5-flash to gemini-3.5-flash-lite. Move people who still have the old
-    // default once; the flag is saved along with the settings, so a later deliberate choice of 2.5 sticks.
-    if (!saved._gemini35) {
-        if (s.gemini.model === "gemini-2.5-flash") s.gemini.model = TL_DEFAULTS.gemini.model;
-        s._gemini35 = true;
-    }
-
-    // Repair configs that an earlier options-page bug cross-copied between engines.
-    const host = (u) => { try { return new URL(u).host; } catch (e) { return ""; } };
+    // Normalize URLs without rewriting deliberately chosen models or compatible API endpoints.
     for (const id of LLM_IDS) {
-        if (id === "custom" || !s[id].baseUrl) continue;
-        for (const other of LLM_IDS) {
-            if (other === id || other === "custom" || !LLM_PRESETS[other].baseUrl) continue;
-            if (host(s[id].baseUrl) === host(LLM_PRESETS[other].baseUrl)) s[id].baseUrl = TL_DEFAULTS[id].baseUrl;
-        }
-        s[id].baseUrl = normBase(s[id].baseUrl) || TL_DEFAULTS[id].baseUrl;
+        if ("baseUrl" in TL_DEFAULTS[id]) s[id].baseUrl = normBase(s[id].baseUrl) || TL_DEFAULTS[id].baseUrl;
     }
-    for (const id of LLM_IDS) {
-        for (const other of LLM_IDS) {
-            if (id !== other && other !== "custom" && id !== "custom" && s[id].model === TL_DEFAULTS[other].model && TL_DEFAULTS[other].model !== TL_DEFAULTS[id].model) s[id].model = TL_DEFAULTS[id].model;
-        }
-    }
+    const bound = (n, lo, hi, fallback) => Number.isFinite(Number(n)) ? Math.max(lo, Math.min(hi, Math.floor(Number(n)))) : fallback;
+    s.batchSize = bound(s.batchSize, 5, 80, 40);
+    s.concurrency = bound(s.concurrency, 1, 8, 2);
+    s.ctxLines = bound(s.ctxLines, 0, 10, 3);
+    s.glossary = typeof s.glossary === "string" ? s.glossary : "";
 
     // Languages: old "zh" -> zh-CN; unknown codes fall back to something sensible.
     if (s.sourceLang === "zh") s.sourceLang = "zh-CN";
@@ -137,43 +124,58 @@ function langName(code) {
 
 // ---------- persistent cache (survives service-worker restarts) ----------
 const TL_CACHE_MAX = 40000;
-let tlCache = null, tlFlushTimer = null;
+let tlCache = null, tlCacheLoading = null, tlFlushTimer = null, tlCacheGeneration = 0;
+let tlCacheWriting = Promise.resolve();
 
 async function cacheLoad() {
     if (tlCache) return tlCache;
-    const { tlcache } = await chrome.storage.local.get("tlcache");
-    tlCache = new Map(Array.isArray(tlcache) ? tlcache : []);
-    return tlCache;
+    if (!tlCacheLoading) {
+        const generation = tlCacheGeneration;
+        tlCacheLoading = chrome.storage.local.get("tlcache").then(({ tlcache }) => {
+            if (generation === tlCacheGeneration) {
+                tlCache = new Map((Array.isArray(tlcache) ? tlcache : []).filter(e => Array.isArray(e) && e.length === 2 && typeof e[0] === "string" && typeof e[1] === "string").slice(-TL_CACHE_MAX));
+            }
+            return tlCache;
+        }).catch(e => { tlCacheLoading = null; throw e; });
+    }
+    return tlCacheLoading;
 }
 function cacheFlushSoon() {
     clearTimeout(tlFlushTimer);
     tlFlushTimer = setTimeout(() => {
         while (tlCache.size > TL_CACHE_MAX) tlCache.delete(tlCache.keys().next().value);
-        chrome.storage.local.set({ tlcache: [...tlCache] });
+        const snapshot = [...tlCache];
+        tlCacheWriting = tlCacheWriting.catch(() => {}).then(() => chrome.storage.local.set({ tlcache: snapshot }));
+        tlCacheWriting.catch(() => {});
     }, 2500);
 }
 async function cacheClear() {
+    tlCacheGeneration++;
+    clearTimeout(tlFlushTimer);
     tlCache = new Map();
+    tlCacheLoading = null;
+    await tlCacheWriting.catch(() => {});
     await chrome.storage.local.remove("tlcache");
 }
-function cacheKey(s, text) {
-    const model = LLM_PRESETS[s.provider] ? s[s.provider].model : "";
-    return `${s.provider}|${model}|${s.sourceLang}>${s.targetLang}|${text}`;
+function cacheKey(s, text, ctx = []) {
+    const cfg = LLM_PRESETS[s.provider] ? s[s.provider] : null;
+    return JSON.stringify([2, s.provider, cfg?.model || "", cfg?.baseUrl || "", s.sourceLang, s.targetLang,
+        cfg ? s.glossary : "", cfg && s.ctxLines ? ctx.slice(-s.ctxLines) : [], text]);
 }
 
 // ---------- queue: limits parallel requests ----------
 let tlLimiter = null, tlLimiterN = 0;
 function limiter(n) {
     n = Math.max(1, Math.min(8, n | 0 || 2));
-    if (tlLimiter && tlLimiterN === n) return tlLimiter;
     tlLimiterN = n;
+    if (tlLimiter) return tlLimiter;
     let active = 0;
     const queue = [];
     const pump = () => {
-        while (active < n && queue.length) {
+        while (active < tlLimiterN && queue.length) {
             const job = queue.shift();
             active++;
-            job.fn().then(job.res, job.rej).finally(() => { active--; pump(); });
+            Promise.resolve().then(job.fn).then(job.res, job.rej).finally(() => { active--; pump(); });
         }
     };
     tlLimiter = (fn) => new Promise((res, rej) => { queue.push({ fn, res, rej }); pump(); });
@@ -182,22 +184,26 @@ function limiter(n) {
 
 // ---------- fetch with exponential backoff (429 / 5xx / network) ----------
 const RETRYABLE = [429, 500, 502, 503, 504];
-async function fetchRetry(url, opts, tries = 5) {
+async function fetchRetry(url, opts = {}, tries = 5) {
     let lastErr;
     for (let i = 0; i < tries; i++) {
         try {
-            const r = await fetch(url, opts);
+            const timeout = AbortSignal.timeout(30000);
+            const signal = opts.signal ? AbortSignal.any([opts.signal, timeout]) : timeout;
+            const r = await fetch(url, { ...opts, signal });
             if (r.ok) return r;
             const body = await r.text().catch(() => "");
             lastErr = new Error(`HTTP ${r.status}: ${body.slice(0, 200)}`);
             lastErr.status = r.status;
             if (!RETRYABLE.includes(r.status)) throw lastErr;
-            const ra = parseFloat(r.headers.get("retry-after"));
-            await sleep(isFinite(ra) ? ra * 1000 : Math.min(30000, 1000 * 2 ** i) + Math.random() * 500);
+            const header = r.headers.get("retry-after");
+            const ra = header && (/^\d+(?:\.\d+)?$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now());
+            if (i + 1 < tries) await sleep(Number.isFinite(ra) && ra !== null ? Math.max(0, Math.min(30000, ra)) : Math.min(30000, 1000 * 2 ** i) + Math.random() * 500);
         } catch (e) {
+            if (opts.signal?.aborted) throw e;
             if (e.status && !RETRYABLE.includes(e.status)) throw e;
             lastErr = e;
-            if (!e.status) await sleep(Math.min(15000, 800 * 2 ** i));
+            if (!e.status && i + 1 < tries) await sleep(Math.min(15000, 800 * 2 ** i));
         }
     }
     throw lastErr;
@@ -230,7 +236,7 @@ Rules:
 ${s.glossary ? "- Always apply this glossary (source = target):\n" + s.glossary + "\n" : ""}Output ONLY JSON: {"t": ["...", ...]} containing exactly as many strings as input lines.${strict}`;
     const user = JSON.stringify({
         target_language: tgt,
-        context_before: (ctx || []).slice(-s.ctxLines),
+        context_before: s.ctxLines ? (ctx || []).slice(-s.ctxLines) : [],
         count: lines.length,
         lines
     });
@@ -248,7 +254,7 @@ function parseT(text) {
         try { j = JSON.parse(m[0]); } catch (e2) { return null; }
     }
     const a = Array.isArray(j) ? j : (j && j.t);
-    return Array.isArray(a) ? a.map(x => String(x == null ? "" : x).trim()) : null;
+    return Array.isArray(a) && a.every(x => typeof x === "string") ? a.map(x => x.trim()) : null;
 }
 
 // ---------- engines: each returns string[] (may be the wrong length; the caller validates) ----------
@@ -366,9 +372,8 @@ async function rawTranslate(lines, ctx, s) {
 // Guarantees out.length === lines.length: on a count mismatch, split the batch in half and retry.
 async function translateLines(lines, ctx, s, depth = 0) {
     const out = await rawTranslate(lines, ctx, s);
-    if (out && out.length === lines.length) return out;
-    if (lines.length === 1) return [out && out.length ? out.join(" ") : lines[0]];
-    if (depth > 6) return lines.slice();
+    if (out && out.length === lines.length && out.every((x, i) => typeof x === "string" && (x.trim() || !lines[i].trim()))) return out;
+    if (lines.length === 1 || depth > 6) throw new Error("The engine returned incomplete or invalid translations. Try another model or a smaller batch.");
     const mid = lines.length >> 1;
     const a = await translateLines(lines.slice(0, mid), ctx, s, depth + 1);
     const b = await translateLines(lines.slice(mid), (ctx || []).concat(lines.slice(0, mid)), s, depth + 1);
@@ -392,12 +397,17 @@ async function translateChecked(lines, ctx, s) {
 }
 
 async function tlTranslate(lines, ctx) {
+    if (!Array.isArray(lines) || lines.length > 80 || !lines.every(l => typeof l === "string" && l.length <= 10000) || lines.join("").length > 100000) throw new Error("Invalid subtitle batch");
+    if (ctx !== undefined && (!Array.isArray(ctx) || ctx.length > 10 || !ctx.every(l => typeof l === "string" && l.length <= 10000))) throw new Error("Invalid subtitle context");
+    ctx = ctx || [];
+    if (!lines.length) return [];
     const s = await tlGetSettings();
     const cache = await cacheLoad();
+    const generation = tlCacheGeneration;
     const out = new Array(lines.length);
     const todo = [];
     lines.forEach((l, i) => {
-        const k = cacheKey(s, l);
+        const k = cacheKey(s, l, ctx);
         if (cache.has(k)) out[i] = cache.get(k); else todo.push(i);
     });
     if (todo.length) {
@@ -405,9 +415,9 @@ async function tlTranslate(lines, ctx) {
         const res = await limiter(s.concurrency)(() => translateChecked(src, ctx, s));
         todo.forEach((i, j) => {
             out[i] = res[j];
-            if (res[j] && res[j] !== lines[i]) cache.set(cacheKey(s, lines[i]), res[j]);
+            if (generation === tlCacheGeneration && res[j] && res[j] !== lines[i]) cache.set(cacheKey(s, lines[i], ctx), res[j]);
         });
-        cacheFlushSoon();
+        if (generation === tlCacheGeneration) cacheFlushSoon();
     }
     return out;
 }
